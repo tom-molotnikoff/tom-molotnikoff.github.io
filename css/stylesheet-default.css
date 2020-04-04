@@ -1,0 +1,177 @@
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently */
+}
+
+body {
+    background-color: 	rgb(13, 13, 13);
+    overflow: hidden;
+}
+
+span {
+    display: inline-block;
+}
+
+.codeLine {
+    margin-top: 1px;
+    margin-bottom: 1px;
+    margin-left: 5px;
+    width: 99% ;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    vertical-align: bottom;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.type {
+    display:inline-block;
+    width: 0px;
+    overflow: hidden;
+    white-space: nowrap;
+    /* animation-name: type; 
+    animation-timing-function: steps(55, end);
+    animation-duration: 1.5s; */
+}
+
+.typeSlow {
+    display:inline-block;
+    overflow: hidden;
+    width: 0px ;
+    white-space: nowrap;
+    /* animation-name: type; 
+    animation-timing-function: steps(55, end); 
+    animation-duration: 2s; */
+}
+
+.typeSlowest {
+    display:inline-block;
+    width:0px ;
+    overflow: hidden;
+    white-space: nowrap;
+    /* animation-name: type; 
+    animation-timing-function: steps(55, end); 
+    animation-duration: 2.5s; */
+}
+
+
+@keyframes type {
+    from {width:0px;}
+}
+
+.codeLine:hover{
+    border-top: 1px solid 	rgb(45, 45, 45);
+    border-bottom: 1px solid 	rgb(45, 45, 45);
+    background-color: rgb(10, 10, 10);
+
+}
+
+.lineNumber {
+    color: lightgrey;
+    font-size: 24px;
+    vertical-align: top;
+}
+
+.funcType{
+    color: 	rgb(163, 41, 163);
+}
+
+.funcParams {
+    color: rgb(255, 102, 51);
+}
+
+.funcName {
+    color: 	rgb(102, 153, 255);
+}
+
+.objectName {
+    color: 	rgb(255, 214, 51);
+}
+
+.varName {
+    color: rgb(128, 255, 128);
+}
+
+.speechMarks {
+    color: 		rgb(191, 128, 255);
+}
+
+.ide {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 24px;
+    font-weight: bolder;
+    color: lightgray;
+}
+
+.comment {
+    color: 	rgb(38, 217, 38)
+}
+
+#nameDiv {
+    position: absolute;
+    left: 16px;
+    font-weight: lighter;
+    color: white;
+}
+
+#aboutMe {
+    position: absolute;
+    top: 70px;
+    width: 100vw;
+    height: 789px;
+    overflow: hidden;
+    white-space: nowrap;
+    transform: scale(0.9); 
+    transition: transform 0.5s;
+}
+
+#name {
+    font-size: 50px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#aboutHidden{
+    display:none;
+}
+
+#insideLinks{
+    display:none;
+}
+
+.pointer {
+    cursor: pointer;
+    /*transition: filter, 0.1s;*/
+}
+
+.pointer:hover{
+    filter: brightness(2);
+}
+
+#education{
+    display: none;
+    font-size: 72px;
+    position: absolute;
+    top: 70px;
+    width: 100vw;
+    height: 789px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    transform: scale(0.9);
+    transition: left 0.25s;
+}
+
+.scrollMore {
+    position: relative;
+    top: 885px;
+    text-align: center;
+    font-size: 50px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display:none;
+}
+
