@@ -27,46 +27,18 @@ span {
     overflow: hidden;
     white-space: nowrap;
 }
-.type {
-    display:inline-block;
-    width: 0px;
-    overflow: hidden;
-    white-space: nowrap;
-    /* animation-name: type; 
-    animation-timing-function: steps(55, end);
-    animation-duration: 1.5s; */
-}
-
-.typeSlow {
-    display:inline-block;
-    overflow: hidden;
-    width: 0px ;
-    white-space: nowrap;
-    /* animation-name: type; 
-    animation-timing-function: steps(55, end); 
-    animation-duration: 2s; */
-}
-
-.typeSlowest {
-    display:inline-block;
-    width:0px ;
-    overflow: hidden;
-    white-space: nowrap;
-    /* animation-name: type; 
-    animation-timing-function: steps(55, end); 
-    animation-duration: 2.5s; */
-}
-
-
-@keyframes type {
-    from {width:0px;}
-}
 
 .codeLine:hover{
     border-top: 1px solid 	rgb(45, 45, 45);
     border-bottom: 1px solid 	rgb(45, 45, 45);
     background-color: rgb(10, 10, 10);
+}
 
+.type, .typeSlow, .typeSlowest{
+    display:inline-block;
+    width: 0px;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .lineNumber {
@@ -75,29 +47,13 @@ span {
     vertical-align: top;
 }
 
-.funcType{
-    color: 	rgb(163, 41, 163);
-}
-
-.funcParams {
-    color: rgb(255, 102, 51);
-}
-
-.funcName {
-    color: 	rgb(102, 153, 255);
-}
-
-.objectName {
-    color: 	rgb(255, 214, 51);
-}
-
-.varName {
-    color: rgb(128, 255, 128);
-}
-
-.speechMarks {
-    color: 		rgb(191, 128, 255);
-}
+.funcType{color:rgb(163, 41, 163);}
+.funcParams {color:rgb(255, 102, 51);}
+.funcName {color:rgb(102, 153, 255);}
+.objectName {color:	rgb(255, 214, 51);}
+.varName {color: rgb(128, 255, 128);}
+.speechMarks {color:rgb(191, 128, 255);}
+.comment {color:rgb(38, 217, 38);}
 
 .ide {
     font-family: "Courier New", Courier, monospace;
@@ -106,8 +62,16 @@ span {
     color: lightgray;
 }
 
-.comment {
-    color: 	rgb(38, 217, 38)
+.pointer {cursor: pointer;}
+.pointer:hover{filter: brightness(2);}
+
+#loading {
+    position: absolute;
+    display:none;
+    z-index: 6;
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
 }
 
 #nameDiv {
@@ -117,61 +81,38 @@ span {
     color: white;
 }
 
-#aboutMe {
-    position: absolute;
-    top: 70px;
-    width: 100vw;
-    height: 789px;
-    overflow: hidden;
-    white-space: nowrap;
-    transform: scale(0.9); 
-    transition: transform 0.5s;
-}
-
 #name {
     font-size: 50px;
     margin-top: 5px;
     margin-bottom: 5px;
 }
 
-#aboutHidden{
-    display:none;
-}
-
-#insideLinks{
-    display:none;
-}
-
-.pointer {
-    cursor: pointer;
-    /*transition: filter, 0.1s;*/
-}
-
-.pointer:hover{
-    filter: brightness(2);
-}
-
-#education{
-    display: none;
-    font-size: 72px;
+#aboutMe, #education, #projects,#pastWork{
     position: absolute;
+    z-index: 1;
+    display:none;
     top: 70px;
     width: 100vw;
     height: 789px;
     overflow: hidden;
     white-space: nowrap;
+    transform: scale(0.9); 
+}
+
+#aboutHidden{display:none;}
+#linksHidden {display: none;}
+#insideLinks{display:none;}
+
+#education, #projects, #pastWork{
     text-align: center;
-    transform: scale(0.9);
-    transition: left 0.25s;
 }
 
 .scrollMore {
-    position: relative;
-    top: 885px;
+    position: absolute;
+    bottom: 60px;
+    width: 100%;
     text-align: center;
     font-size: 50px;
-    margin-top: 5px;
-    margin-bottom: 5px;
     display:none;
 }
 
