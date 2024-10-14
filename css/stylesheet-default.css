@@ -43,7 +43,7 @@ span {
 
 .lineNumber {
     color: lightgrey;
-    font-size: 24px;
+    font-size: 22px;
     vertical-align: top;
 }
 
@@ -57,7 +57,7 @@ span {
 
 .ide {
     font-family: "Courier New", Courier, monospace;
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bolder;
     color: lightgray;
 }
@@ -87,7 +87,7 @@ span {
     margin-bottom: 5px;
 }
 
-#aboutMe, #education, #projects,#pastWork{
+#aboutMe, #bookRecommendations, #projects,#pastWork{
     position: absolute;
     z-index: 1;
     display:none;
@@ -96,16 +96,14 @@ span {
     height: 789px;
     overflow: hidden;
     white-space: nowrap;
-    transform: scale(0.9); 
+    transform: scale(0.9);
 }
 
 #aboutHidden{display:none;}
 #linksHidden {display: none;}
 #insideLinks{display:none;}
+#bookHidden{display:none;}
 
-#education, #projects, #pastWork{
-    text-align: center;
-}
 
 .scrollMore {
     position: absolute;
@@ -115,4 +113,3 @@ span {
     font-size: 50px;
     display:none;
 }
-

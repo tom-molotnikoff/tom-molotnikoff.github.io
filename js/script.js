@@ -9,17 +9,20 @@ $(document).ready(function(){
     var linksExpander = $(".linksExpander");
     var insideLinks = $("#insideLinks");
     var linksHidden = $("#linksHidden");
+    var bookExpander = $(".bookExpander");
+    var insideBooks = $("#insideBooks");
+    var bookHidden = $("#bookHidden");
     var type = $(".type");
     var typeSlow = $(".typeSlow");
     var typeSlowest = $(".typeSlowest");
     var expander = $(".expander");
     var aboutMe = $("#aboutMe");
-    var education = $("#education");
+    var bookRecommendations = $("#bookRecommendations");
     var projects = $("#projects");
     var pastWork = $("#pastWork");
     var pages = $(".page");
     var scrollMore = $(".scrollMore");
-    var scrollEducation = $("#scrollEducation");
+    var scrollBookRecommendations = $("#scrollBookRecommendations");
     var scrollProjects = $("#scrollProjects");
     var scrollPastWorkPage = $("#scrollPastWorkPage ");
     var contactMe = $("#contactMe");
@@ -28,6 +31,8 @@ $(document).ready(function(){
     aboutExpander.click(function() {expanderTransition(insideAbout, aboutHidden);});
     // Handler for pageLinks function slide down and slide up
     linksExpander.click(function() {expanderTransition(insideLinks, linksHidden);});
+    // Handler for bookRecommendations function slide down and slide up
+    bookExpander.click(function() {expanderTransition(insideBooks, bookHidden);});
 
     // Expand a code block out or in
     function expanderTransition(inside, hidden){
@@ -39,53 +44,41 @@ $(document).ready(function(){
     }
 
     // Perform the typing transition
-    // False = type backwards
-    // True = type forwards
-    // Callback function is executed after the longest animation
-    // cbPageTo* are there explicitly for the swapPagesTransition as it is used frequently    
-    function typeTransition(direction, callback, cbPageToClose, cbPageToOpen) {
-        callback = callback || false;
-        cbPageToClose = cbPageToClose || false;
-        cbPageToOpen = cbPageToOpen || false;
+    // false = type backwards
+    // true = type forwards
+    async function typeTransition(direction) {
         type.stop();typeSlow.stop();typeSlowest.stop();expander.stop();
         var endWidth;
-        if (direction) {endWidth = "100%";}
-        else {endWidth = "0%";}
-
-        expander.animate({opacity: endWidth}, 200);
-        type.animate({width: endWidth}, 750);
-        typeSlow.animate({width: endWidth}, 1000);
-
-        if (!callback) {typeSlowest.animate({width: endWidth}, 1500);} 
-        else {
-            typeSlowest.animate({width: endWidth}, 1500, function() {
-                if (cbPageToOpen && cbPageToClose) {callback(cbPageToClose, cbPageToOpen);}
-                else {callback();}
-            });
+        if (direction) {
+          endWidth = "100%";
         }
+        else {
+          endWidth = "0%";
+        }
+        return await Promise.all([expander.animate({opacity: endWidth}, 200).promise(),
+         type.animate({width: endWidth}, 750).promise(),
+         typeSlow.animate({width: endWidth}, 1000).promise(),
+         typeSlowest.animate({width: endWidth}, 1500).promise()]);
     }
 
     // Fades one page out, then the other in
-    function swapPagesTransition(pageToClose, pageToOpen) {
+    async function swapPagesTransition(pageToClose, pageToOpen) {
         pages.not(pageToClose).hide();
-        pageToClose.fadeOut(200, function() {
-            pageToOpen.fadeIn(200);
-            updateBottomPrompt();
-        });
+        await pageToClose.fadeOut(200, function () {pageToOpen.fadeIn(200); updateBottomPrompt();});
     }
 
     function updateBottomPrompt() {
         if (aboutMe.is(":visible")){
             scrollMore.not(scrollProjects).hide();
             scrollProjects.fadeOut("fast");
-            scrollEducation.fadeIn("fast");
-        } else if (education.is(":visible")) {
-            scrollEducation.fadeOut("fast");
+            scrollBookRecommendations.fadeIn("fast");
+        } else if (bookRecommendations.is(":visible")) {
+            scrollBookRecommendations.fadeOut("fast");
             scrollProjects.fadeIn("fast");
             scrollPastWorkPage.fadeOut("fast");
             contactMe.hide();
         } else if (projects.is(":visible")) {
-            scrollEducation.hide();
+            scrollBookRecommendations.hide();
             scrollProjects.fadeOut("fast");
             scrollPastWorkPage.fadeIn("fast");
             contactMe.fadeOut("fast");
@@ -96,93 +89,84 @@ $(document).ready(function(){
         }
     }
 
-    // This scroll block needs to display the aboutMe page
-    function firstScrollBlock() {
-        if (newVal < oldVal && newVal != oldVal) {
-            if (education.is(":visible")) {swapPagesTransition(education, aboutMe);}
-            typeTransition(true);
-        }
-    }
-
-    // This scroll block needs to display the educationPage
-    function secondScrollBlock() {
-        // Are we moving into this from previous or coming back from the next?
-        if (newVal > oldVal && newVal != oldVal) {
-            typeTransition(false, swapPagesTransition, aboutMe, education);//
-        } else if (newVal != oldVal){
-            swapPagesTransition(projects, education);
-        }
-    }
-
-    // This scroll block needs to display the projectsPage
-    function thirdScrollBlock() {
-        if (newVal > oldVal && newVal != oldVal) {
-            swapPagesTransition(education, projects);
-        } else if (newVal != oldVal) {
-            swapPagesTransition(pastWork, projects);
-        }
-    }    
-
-    // This scroll block needs to display the pastWorkPage
-    function fourthScrollBlock() {
-        if (newVal != oldVal) {swapPagesTransition(projects, pastWork);}
-    }
-
-    function capScrolls() {
-        if (aboutMe.is(":visible")){
-            currentCap = 150;
-            currentMin = 0;
-        } else if (education.is(":visible")) {
-            currentCap = 250;
-            currentMin = 50;
-        } else if (projects.is(":visible")) {
-            currentCap = 350;
-            currentMin = 150;
-        } else if (pastWork.is(":visible")) {
-            currentCap = 450;
-            currentMin = 250;
-        }
-    }
-
-    var newVal = 0
-    var oldVal = 0;
-    var currentCap = 150;
-    var currentMin = 0;
+    var currentPage = 0;
+    var timeLastEvaluated = Date.now();
     function scrollBehaviour(e) {
-        // Find the new scroll value
-        var movement = parseInt(e.deltaY);
-        newVal = oldVal + movement;
-        capScrolls();
-        // Floor and roof for the scroll wheel values
-        if (newVal < currentMin) {newVal=currentMin;}
-        if (newVal > currentCap) {newVal=currentCap;}
-        // Each section is a page, the scrollblock functions switch the active page
-        if (newVal < 100) {
-            firstScrollBlock();
-        } else if (newVal < 200) {
-            secondScrollBlock();
-        } else if (newVal < 300) {
-            thirdScrollBlock();
-        } else if (newVal < 400) {
-            fourthScrollBlock();
+        if (Date.now() - timeLastEvaluated < 2000) {
+          return;
         }
-        // Keep track of the last scroll to determine direction
-        oldVal = newVal;
+        var movement = parseInt(e.deltaY);
+        if (movement > 0 ) {
+          scrollForwards();
+        } else {
+          scrollBackwards();
+        }
+        timeLastEvaluated = Date.now();
     }
 
+    async function scrollForwards() {
+      switch (currentPage) {
+        case 0:
+          await typeTransition(false);
+          await swapPagesTransition(aboutMe, bookRecommendations);
+          await typeTransition(true);
+          currentPage = 1;
+          break;
+        case 1:
+          await typeTransition(false);
+          await swapPagesTransition(bookRecommendations, projects);
+          await typeTransition(true);
+          currentPage = 2;
+          break;
+        case 2:
+          await typeTransition(false);
+          await swapPagesTransition(projects, pastWork);
+          await typeTransition(true);
+          currentPage = 3;
+          break;
+        case 3:
+          break;
+      }
+    }
+
+    async function scrollBackwards() {
+      switch (currentPage) {
+        case 0:
+          break;
+        case 1:
+          await typeTransition(false);
+          await swapPagesTransition(bookRecommendations, aboutMe);
+          await typeTransition(true);
+          currentPage = 0;
+          break;
+        case 2:
+          await typeTransition(false);
+          await swapPagesTransition(projects, bookRecommendations);
+          await typeTransition(true);
+          currentPage = 1;
+          break;
+        case 3:
+          await typeTransition(false);
+          await swapPagesTransition(pastWork, projects);
+          await typeTransition(true);
+          currentPage = 2;
+          break;
+        }
+    }
 
     // Draw the first page
     function init(){
         aboutMe.show();
-        // Write the line numbers into the HTML for the first page - eases editing
+        // Write the line numbers into the HTML
         for (i = 0; i < lineNumbers.length; i++) {
             if(i<10) {$(lineNumbers[i]).html("0" + i);}
             else {$(lineNumbers[i]).html(i);}
         }
         // Fade in the page and then callback to enable the scrolling
-        typeTransition(true, function() {document.addEventListener("wheel", scrollBehaviour, true);});
+        typeTransition(true, function() {});
+        document.addEventListener("wheel", scrollBehaviour, true);
         linksHidden.fadeIn("fast");
-        scrollEducation.fadeIn("fast");
+        scrollBookRecommendations.fadeIn("fast");
     }
     // Initialise
     init();
