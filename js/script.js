@@ -114,9 +114,13 @@ $(document).ready(function(){
         scrollInProgress = true;
         var movement = parseInt(e.deltaY);
         if (movement > 0 ) {
-          await scroll(currentPage, currentPage + 1);
+          if (currentPage != pageOrder.size - 1 ) {
+            await scroll(currentPage, currentPage + 1);
+          }
         } else {
-          await scroll(currentPage, currentPage - 1);
+          if (currentPage != 0) {
+            await scroll(currentPage, currentPage - 1);
+          }
         }
         scrollInProgress = false;
     }
@@ -129,14 +133,17 @@ $(document).ready(function(){
       await typeTransition(true);
     }
 
-
     function init(){
       pageOrder.get(0).show();
-      var lineNumbers = $(".lineNumber");
 
+      var lineNumbers = $(".lineNumber");
       for (i = 0; i < lineNumbers.length; i++) {
-          if(i<10) {$(lineNumbers[i]).html("0" + i);}
-          else {$(lineNumbers[i]).html(i);}
+        if(i < 10) {
+          $(lineNumbers[i]).html("0" + i);
+        }
+        else {
+          $(lineNumbers[i]).html(i);
+        }
       }
 
       typeTransition(true);
