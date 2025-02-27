@@ -42,22 +42,22 @@ $(document).ready(function(){
     }
 
     $("#bookRecommendationsLink").click(async function() {
-      await customScroll(0, 1);
+      await scroll(0, 1);
     });
 
     $("#projectsLink").click(async function() {
-      await customScroll(0, 2);
+      await scroll(0, 2);
     });
 
     $("#pastWorkLink").click(async function() {
-      await customScroll(0, 3);
+      await scroll(0, 3);
     });
 
     $("#name").click(async function() {
       if (currentPage == 0) {
         return;
       }
-      await customScroll(currentPage, 0);
+      await scroll(currentPage, 0);
     });
 
     // Perform the typing transition
@@ -114,36 +114,14 @@ $(document).ready(function(){
         scrollInProgress = true;
         var movement = parseInt(e.deltaY);
         if (movement > 0 ) {
-          await scrollForwards();
+          await scroll(currentPage, currentPage + 1);
         } else {
-          await scrollBackwards();
+          await scroll(currentPage, currentPage - 1);
         }
         scrollInProgress = false;
     }
 
-    async function scrollForwards() {
-      if (currentPage == pageOrder.size - 1) {
-        return;
-      }
-      await typeTransition(false);
-      await swapPagesTransition(pageOrder.get(currentPage), pageOrder.get(currentPage + 1));
-      currentPage += 1;
-      await updateBottomPrompt();
-      await typeTransition(true);
-    }
-
-    async function scrollBackwards() {
-      if (currentPage == 0) {
-        return;
-      }
-      await typeTransition(false);
-      await swapPagesTransition(pageOrder.get(currentPage), pageOrder.get(currentPage - 1));
-      currentPage -= 1;
-      await updateBottomPrompt();
-      await typeTransition(true);
-    }
-
-    async function customScroll(pageToClose, pageToOpen) {
+    async function scroll(pageToClose, pageToOpen) {
       await typeTransition(false);
       await swapPagesTransition(pageOrder.get(pageToClose), pageOrder.get(pageToOpen));
       currentPage = pageToOpen;
