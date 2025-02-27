@@ -1,4 +1,3 @@
-
 $(document).ready(function(){
 
     const aboutMe = $("#aboutMe");
@@ -43,33 +42,22 @@ $(document).ready(function(){
     }
 
     $("#bookRecommendationsLink").click(async function() {
-      await typeTransition(false);
-      await swapPagesTransition(pageOrder.get(0), pageOrder.get(1));
-      await typeTransition(true);
-      currentPage = 1;
+      await customScroll(0, 1);
     });
 
     $("#projectsLink").click(async function() {
-      await typeTransition(false);
-      await swapPagesTransition(pageOrder.get(0), pageOrder.get(2));
-      await typeTransition(true);
-      currentPage = 2;
+      await customScroll(0, 2);
     });
 
     $("#pastWorkLink").click(async function() {
-      await typeTransition(false);
-      await swapPagesTransition(pageOrder.get(0), pageOrder.get(3));
-      await typeTransition(true);
-      currentPage = 3;
+      await customScroll(0, 3);
     });
 
     $("#name").click(async function() {
-      if (currentPage != 0) {
-        await typeTransition(false);
-        await swapPagesTransition(pageOrder.get(currentPage), pageOrder.get(0));
-        await typeTransition(true);
-        currentPage = 0;
+      if (currentPage == 0) {
+        return;
       }
+      await customScroll(currentPage, 0);
     });
 
     // Perform the typing transition
@@ -86,12 +74,9 @@ $(document).ready(function(){
       typeSlowest.stop();
       expander.stop();
 
-      var endWidth;
+      var endWidth = "0%";
       if (direction) {
         endWidth = "100%";
-      }
-      else {
-        endWidth = "0%";
       }
 
       return await Promise.all([
@@ -106,31 +91,18 @@ $(document).ready(function(){
     async function swapPagesTransition(pageToClose, pageToOpen) {
       var pages = $(".page");
       pages.not(pageToClose).hide();
-      await pageToClose.fadeOut(100, function () {pageToOpen.fadeIn(100); updateBottomPrompt();}).promise();
+      await pageToClose.fadeOut(100, function () {pageToOpen.fadeIn(100);}).promise();
     }
 
     function updateBottomPrompt() {
-      if (pageOrder.get(0).is(":visible")){
-        scrollInfoOrder.get(0).fadeIn("fast");
-        scrollInfoOrder.get(1).fadeOut("fast");
-        scrollInfoOrder.get(2).hide();
-        scrollInfoOrder.get(3).hide();
-      } else if (pageOrder.get(1).is(":visible")) {
-        scrollInfoOrder.get(1).fadeIn("fast");
-        scrollInfoOrder.get(0).fadeOut("fast");
-        scrollInfoOrder.get(2).fadeOut("fast");
-        scrollInfoOrder.get(3).hide();
-        contactMe.hide();
-      } else if (pageOrder.get(2).is(":visible")) {
-        scrollInfoOrder.get(2).fadeIn("fast");
-        scrollInfoOrder.get(1).fadeOut("fast");
-        scrollInfoOrder.get(3).fadeOut("fast");
-        scrollInfoOrder.get(0).hide();
-      } else if (pageOrder.get(3).is(":visible")) {
-        scrollInfoOrder.get(3).fadeIn("fast");
-        scrollInfoOrder.get(2).fadeOut("fast");
-        scrollInfoOrder.get(0).hide();
-        scrollInfoOrder.get(1).hide();
+      for (let [order, scrollInfo] of scrollInfoOrder) {
+        if (order == currentPage) {
+          scrollInfo.fadeIn("fast");
+        } else if (order == currentPage - 1 || order == currentPage + 1) {
+          scrollInfo.fadeOut("fast")
+        } else {
+          scrollInfo.hide();
+        }
       }
     }
 
@@ -150,54 +122,35 @@ $(document).ready(function(){
     }
 
     async function scrollForwards() {
-      switch (currentPage) {
-        case 0:
-          await typeTransition(false);
-          await swapPagesTransition(pageOrder.get(0), pageOrder.get(1));
-          await typeTransition(true);
-          currentPage = 1;
-          break;
-        case 1:
-          await typeTransition(false);
-          await swapPagesTransition(pageOrder.get(1), pageOrder.get(2));
-          await typeTransition(true);
-          currentPage = 2;
-          break;
-        case 2:
-          await typeTransition(false);
-          await swapPagesTransition(pageOrder.get(2), pageOrder.get(3));
-          await typeTransition(true);
-          currentPage = 3;
-          break;
-        case 3:
-          break;
+      if (currentPage == pageOrder.size - 1) {
+        return;
       }
+      await typeTransition(false);
+      await swapPagesTransition(pageOrder.get(currentPage), pageOrder.get(currentPage + 1));
+      currentPage += 1;
+      await updateBottomPrompt();
+      await typeTransition(true);
     }
 
     async function scrollBackwards() {
-      switch (currentPage) {
-        case 0:
-          break;
-        case 1:
-          await typeTransition(false);
-          await swapPagesTransition(pageOrder.get(1), pageOrder.get(0));
-          await typeTransition(true);
-          currentPage = 0;
-          break;
-        case 2:
-          await typeTransition(false);
-          await swapPagesTransition(pageOrder.get(2), pageOrder.get(1));
-          await typeTransition(true);
-          currentPage = 1;
-          break;
-        case 3:
-          await typeTransition(false);
-          await swapPagesTransition(pageOrder.get(3), pageOrder.get(2));
-          await typeTransition(true);
-          currentPage = 2;
-          break;
-        }
+      if (currentPage == 0) {
+        return;
+      }
+      await typeTransition(false);
+      await swapPagesTransition(pageOrder.get(currentPage), pageOrder.get(currentPage - 1));
+      currentPage -= 1;
+      await updateBottomPrompt();
+      await typeTransition(true);
     }
+
+    async function customScroll(pageToClose, pageToOpen) {
+      await typeTransition(false);
+      await swapPagesTransition(pageOrder.get(pageToClose), pageOrder.get(pageToOpen));
+      currentPage = pageToOpen;
+      await updateBottomPrompt();
+      await typeTransition(true);
+    }
+
 
     function init(){
       pageOrder.get(0).show();
