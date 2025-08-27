@@ -4,60 +4,24 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
+import { pages } from "../../pages/Pages";
+import { NavLink } from "react-router";
 
 function RootNavigation() {
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <a className="text-sidebar-primary" href="/about">
-              About
-            </a>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <a className="text-sidebar-primary" href="/experience">
-              Experience
-            </a>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <a className="text-sidebar-primary" href="/skills">
-              Skills
-            </a>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <a className="text-sidebar-primary" href="/projects">
-              Projects
-            </a>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <a className="text-sidebar-primary" href="/hobbies">
-              Hobbies
-            </a>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <a className="text-sidebar-primary" href="/contact">
-              Contact
-            </a>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuLink asChild>
-            <a className="text-sidebar-primary" href="/notes">
-              Notes
-            </a>
-          </NavigationMenuLink>
-        </NavigationMenuItem>
+        {pages.map(
+          (page: { href: string; print_name: string; name: string }) => (
+            <NavigationMenuItem key={page.name}>
+              <NavigationMenuLink asChild>
+                <NavLink className="text-sidebar-primary" to={page.href}>
+                  {page.print_name}
+                </NavLink>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          )
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );

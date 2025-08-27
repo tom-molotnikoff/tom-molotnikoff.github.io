@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import RootNavigation from "./navigation/RootNavigation";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -8,9 +9,9 @@ function HeaderContainer() {
         <div className="flex items-center justify-between h-16">
           {/* Left side: Logo */}
           <div className="flex-shrink-0">
-            <a href="/" className="text-xl font-bold text-foreground">
+            <Link to="/" className="text-xl font-bold text-foreground">
               Tom Molotnikoff
-            </a>
+            </Link>
           </div>
           {/* Right side: Navigation */}
           <div className="flex flex-1 items-right justify-end space-x-4">
