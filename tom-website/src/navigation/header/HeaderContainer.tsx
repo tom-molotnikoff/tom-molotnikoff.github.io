@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import RootNavigation from "./navigation/RootNavigation";
+import RootNavigation from "@/navigation/header/header-navigation/RootNavigation";
 import { ModeToggle } from "@/components/mode-toggle";
 
 function HeaderContainer() {
@@ -10,7 +10,7 @@ function HeaderContainer() {
           {/* Left side: Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="text-xl font-bold text-foreground">
-              Tom Molotnikoff
+              tom_molotnikoff.me
             </Link>
           </div>
           {/* Right side: Navigation */}

@@ -4,7 +4,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
-import { pages } from "../../pages/Pages";
+import { pages } from "@/pages/Pages";
 import { NavLink } from "react-router";
 
 function RootNavigation() {
