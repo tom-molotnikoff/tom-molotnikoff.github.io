@@ -1,4 +1,4 @@
-import Introduction from "@/components/ui/Introduction";
+import Introduction from "@/components/ui/introduction-text";
 import TextWithCatCarousel from "@/components/ui/text-with-cat-carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 

@@ -6,7 +6,7 @@ import {
 } from "@/components/typography";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-export default function Introduction() {
+function IntroductionText() {
   const isMobile = useIsMobile();
 
   return (
@@ -47,3 +47,5 @@ export default function Introduction() {
     </div>
   );
 }
+
+export default IntroductionText;
