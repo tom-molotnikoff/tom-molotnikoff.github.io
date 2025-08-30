@@ -9,11 +9,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { pages } from "@/pages/Pages";
-import { Link } from "react-router";
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router";
 
 function SidebarImpl() {
+  const { setOpenMobile } = useSidebar();
+  const location = useLocation();
+
+  useEffect(() => {
+    setOpenMobile(false);
+    console.log("Location changed, closing sidebar");
+  }, [location, setOpenMobile]);
+
   return (
     <Sidebar>
       <SidebarHeader />
@@ -33,7 +43,6 @@ function SidebarImpl() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
       <SidebarFooter />
     </Sidebar>
   );

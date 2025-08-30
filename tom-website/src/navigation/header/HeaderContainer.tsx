@@ -1,14 +1,18 @@
 import { Link } from "react-router";
 import RootNavigation from "@/navigation/header/header-navigation/RootNavigation";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 function HeaderContainer() {
   return (
-    <div className="sticky top-0 left-0 w-full z-50 bg-background border-b border-border">
+    <div className="sticky top-0 left-0 w-full z-50 bg-background border-b border-border shadow-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side: Logo */}
-          <div className="flex-shrink-0">
+          <div className="flex gap-x-5 flex-shrink-0">
+            <Avatar>
+              <AvatarImage src="/avatar/me.jpg" alt="Tom Molotnikoff Avatar" />
+            </Avatar>
             <Link to="/" className="text-xl font-bold text-foreground">
               tom_molotnikoff.me
             </Link>

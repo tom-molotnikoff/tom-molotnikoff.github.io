@@ -1,0 +1,32 @@
+export const catImages16by9 = [
+  "/cats16by9/bean1.jpg",
+  "/cats16by9/bean3.jpg",
+  "/cats16by9/bean4.jpg",
+  "/cats16by9/bean5.jpg",
+  "/cats16by9/soup1.jpg",
+  "/cats16by9/soup2.jpg",
+  "/cats16by9/soup4.jpg",
+  "/cats16by9/soup5.jpg",
+  "/cats16by9/soupbean1.jpg",
+  "/cats16by9/soupbean2.jpg",
+  "/cats16by9/soupbean3.jpg",
+  "/cats16by9/soupbean4.jpg",
+  "/cats16by9/soupbean5.jpg",
+];
+
+export const catImages9by16 = [
+  "/cats9by16/bean1.jpg",
+  "/cats9by16/bean2.jpg",
+  "/cats9by16/bean3.jpg",
+  "/cats9by16/bean4.jpg",
+  "/cats9by16/bean5.jpg",
+  "/cats9by16/soup1.jpg",
+  "/cats9by16/soup2.jpg",
+  "/cats9by16/soup3.jpg",
+  "/cats9by16/soup4.jpg",
+  "/cats9by16/soup5.jpg",
+  "/cats9by16/soupbean1.jpg",
+  "/cats9by16/soupbean3.jpg",
+  "/cats9by16/soupbean4.jpg",
+  "/cats9by16/soupbean5.jpg",
+];

@@ -4,6 +4,7 @@ import SidebarImpl from "./SidebarImpl";
 import SidebarBurgerTrigger from "./SidebarBurgerTrigger";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 function HeaderWithSidebar() {
   const isMobile = useIsMobile();
@@ -12,17 +13,21 @@ function HeaderWithSidebar() {
       <SidebarImpl />
       <main>
         <div
-          className={
-            "top-0 left-0 z-50 bg-background border-b border-border " + isMobile
-              ? "min-w-screen"
-              : ""
-          }
+          className={`sticky top-0 left-0 z-50 bg-background border-b border-border shadow-sm ${
+            isMobile ? "min-w-screen" : ""
+          }`}
         >
           <div className="px-5">
             <div className="flex items-center justify-between space-x-5 h-16">
               {/* Left side: Logo */}
               <div className="grow items-center flex space-x-5">
                 <SidebarBurgerTrigger />
+                <Avatar>
+                  <AvatarImage
+                    src="/avatar/me.jpg"
+                    alt="Tom Molotnikoff Avatar"
+                  />
+                </Avatar>
                 <Link to="/" className="text-xl font-bold text-foreground">
                   tom_molo.me
                 </Link>
