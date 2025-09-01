@@ -1,7 +1,14 @@
 type TypographyTextProps = {
   children: React.ReactNode;
+  className?: string;
 };
 
+export function TypographySmall({
+  children,
+  className = "",
+}: TypographyTextProps) {
+  return <p className={`text-sm ${className}`}>{children}</p>;
+}
 export function TypographyH1({ children }: TypographyTextProps) {
   return (
     <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">

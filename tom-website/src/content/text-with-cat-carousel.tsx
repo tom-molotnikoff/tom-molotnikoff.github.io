@@ -1,6 +1,10 @@
 import { useIsMobile } from "@/hooks/use-mobile";
-import { TypographyH1, TypographyH2, TypographyMuted } from "../typography";
-import ImageCarousel from "./image-carousel";
+import {
+  TypographyH1,
+  TypographyH2,
+  TypographyMuted,
+} from "@/components/typography";
+import ImageCarousel from "@/components/ui/image-carousel";
 import { catImages16by9, catImages9by16 } from "@/assets/cat-images";
 
 function TextWithCatCarousel() {

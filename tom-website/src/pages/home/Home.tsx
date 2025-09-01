@@ -1,5 +1,5 @@
-import Introduction from "@/components/ui/introduction-text";
-import TextWithCatCarousel from "@/components/ui/text-with-cat-carousel";
+import Introduction from "@/content/introduction-text";
+import TextWithCatCarousel from "@/content/text-with-cat-carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 function Home() {
