@@ -12,10 +12,10 @@ function RootNavigation() {
     <NavigationMenu viewport={false}>
       <NavigationMenuList>
         {pages.map(
-          (page: { href: string; print_name: string; name: string }) => (
+          (page: { root_href: string; print_name: string; name: string }) => (
             <NavigationMenuItem key={page.name}>
               <NavigationMenuLink asChild>
-                <NavLink className="text-sidebar-primary" to={page.href}>
+                <NavLink className="text-sidebar-primary" to={page.root_href}>
                   {page.print_name}
                 </NavLink>
               </NavigationMenuLink>

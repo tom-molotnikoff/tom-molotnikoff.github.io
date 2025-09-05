@@ -1,7 +1,7 @@
 import Home from "@/pages/home/Home";
 import Experience from "@/pages/experience/Experience";
 import Contact from "./contact/Contact";
-import Notes from "./notes/Notes";
+import Blog from "./blog/Blog";
 
 // Define the layout of the pages. This is used in the router and the navbar.
 // The order matters.
@@ -11,22 +11,37 @@ import Notes from "./notes/Notes";
 // Make sure to also create the page component in the pages folder.
 export const pages: {
   name: string;
-  href: string;
+  react_router_path: string;
   print_name: string;
+  root_href: string;
   component: React.ComponentType;
 }[] = [
-  { name: "home", href: "/", print_name: "Home", component: Home },
+  {
+    name: "home",
+    react_router_path: "/",
+    root_href: "/",
+    print_name: "Home",
+    component: Home,
+  },
   {
     name: "experience",
-    href: "/experience",
+    react_router_path: "/experience",
+    root_href: "/experience",
     print_name: "Experience",
     component: Experience,
   },
   {
     name: "contact",
-    href: "/contact",
+    react_router_path: "/contact",
+    root_href: "/contact",
     print_name: "Contact",
     component: Contact,
   },
-  { name: "notes", href: "/notes", print_name: "Notes/Blog", component: Notes },
+  {
+    name: "blog",
+    root_href: "/blog",
+    react_router_path: "/blog/*",
+    print_name: "Blog",
+    component: Blog,
+  },
 ];

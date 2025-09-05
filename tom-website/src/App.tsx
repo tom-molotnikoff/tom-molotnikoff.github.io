@@ -16,7 +16,7 @@ function App() {
             {pages.map((page) => (
               <Route
                 key={page.name}
-                path={page.href}
+                path={page.react_router_path}
                 element={React.createElement(page.component)}
               />
             ))}

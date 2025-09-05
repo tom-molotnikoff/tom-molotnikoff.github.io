@@ -35,7 +35,7 @@ function SidebarImpl() {
               {pages.map((page) => (
                 <SidebarMenuItem key={page.name}>
                   <SidebarMenuButton asChild>
-                    <Link to={page.href}>{page.print_name}</Link>
+                    <Link to={page.root_href}>{page.print_name}</Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

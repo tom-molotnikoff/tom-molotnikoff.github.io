@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverTrigger,
@@ -189,30 +189,49 @@ function LogoGrid() {
   ];
 
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(0);
+
+  useEffect(() => {
+    if (visibleCount < logos.length) {
+      const timeout = setTimeout(() => {
+        setVisibleCount(visibleCount + 1);
+      }, 10);
+      return () => clearTimeout(timeout);
+    }
+  }, [visibleCount, logos.length]);
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 py-8">
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 py-8 ">
       {logos.map((logo, idx) => (
-        <Popover
+        <div
           key={logo.name}
-          open={openIndex === idx}
-          onOpenChange={(open) => setOpenIndex(open ? idx : null)}
+          className={`  flex items-center justify-center transition-opacity duration-300 group ${
+            idx < visibleCount ? "opacity-100" : "opacity-0"
+          }`}
         >
-          <PopoverTrigger asChild>
-            <button className="flex flex-col items-center group focus:outline-none">
-              <img
-                src={`/logos/${logo.file}`}
-                alt={logo.name}
-                className="p-2 rounded-md h-23 w-23 object-contain transition-transform duration-200 group-hover:scale-110 group-hover:shadow-lg dark:bg-white/5"
-              />
-              <TypographyMuted>{logo.name}</TypographyMuted>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <TypographyH3>{logo.name}</TypographyH3>
-            <TypographySmall>{logo.description}</TypographySmall>
-          </PopoverContent>
-        </Popover>
+          <div className="flex items-center justify-center h-32 w-32 rounded-md p-2 transition-transform duration-200 group-hover:scale-110 group-hover:shadow-lg dark:bg-white/5">
+            <Popover
+              key={logo.name}
+              open={openIndex === idx}
+              onOpenChange={(open) => setOpenIndex(open ? idx : null)}
+            >
+              <PopoverTrigger asChild>
+                <button className="flex flex-col items-center  focus:outline-none">
+                  <img
+                    src={`/logos/${logo.file}`}
+                    alt={logo.name}
+                    className="p-2 h-23 w-23 object-contain "
+                  />
+                  <TypographyMuted>{logo.name}</TypographyMuted>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <TypographyH3>{logo.name}</TypographyH3>
+                <TypographySmall>{logo.description}</TypographySmall>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
       ))}
     </div>
   );
