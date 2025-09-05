@@ -5,7 +5,8 @@ description: "A simple test post to demonstrate MDX content."
 tags: ["test", "mdx", "blog"]
 published: false
 ---
-import {Button} from "../../components/ui/button";
+
+import { Button } from "../../components/ui/button";
 
 # Another Test Post
 
@@ -17,6 +18,17 @@ Welcome to another test post! This file demonstrates some basic MDX features. Lo
 - JSX components
 - Code blocks
 
+| Table | Example |
+| ----- | ------- |
+| Row 1 | Data 1  |
+| Row 2 | Data 2  |
+
 ## Example Code
 
-<Button onClick={() => {alert("hello!")}}>Click Me!</Button>
+<Button
+  onClick={() => {
+    alert("hello!");
+  }}
+>
+  Click Me!
+</Button>
