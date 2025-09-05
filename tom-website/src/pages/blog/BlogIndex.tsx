@@ -17,10 +17,10 @@ function BlogIndex({ posts }: BlogIndexPageParams) {
   // display them one by one in a transition
   return (
     <div className="flex flex-1 justify-center flex-col items-center mt-10">
-      <div className="flex flex-col items-start gap-y-10 ml-10 mr-10">
+      <div className="flex flex-col items-start gap-y-10 ml-3 mr-3 md:ml-10 md:mr-10">
         {posts.map(({ name, frontmatter }) => (
           <Link to={`/blog/${name}`} key={name} className="w-full group">
-            <Card className="min-w-sm md:min-w-xl lg:min-w-5xl bg-card hover:shadow-lg transition-shadow hover:bg-muted/90 hover:scale-[1.01] transition-all">
+            <Card className="w-full bg-card hover:shadow-lg transition-shadow hover:bg-muted/90 hover:scale-[1.01] transition-all">
               <CardHeader>
                 <CardTitle>
                   <TypographyH3 className="group-hover:underline transition-all">

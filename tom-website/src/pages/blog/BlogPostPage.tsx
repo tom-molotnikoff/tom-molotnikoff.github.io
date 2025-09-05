@@ -16,7 +16,7 @@ function BlogPostPage({ posts }: BlogPostPageParams) {
   const { frontmatter, Content } = post;
   return (
     <div className="flex flex-1 justify-center">
-      <div className="flex flex-1 justify-center flex-col items-center lg:max-w-5xl mr-10 ml-10 mt-10 mb-10 md:min-w-2xl lg:min-w-3/5">
+      <div className="flex flex-1 justify-center flex-col items-center lg:max-w-5xl ml-3 mr-3 md:mr-10 md:ml-10 mt-10 mb-10 md:min-w-2xl lg:min-w-3/5">
         <div className="flex flex-1 items-start w-full mb-4">
           <Link
             to="/blog"
