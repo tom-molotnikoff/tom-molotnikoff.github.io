@@ -1,5 +1,7 @@
 import { Link, useParams } from "react-router";
 import type { BlogPost } from "./Blog";
+import { MDXProvider } from "@mdx-js/react";
+import { mdxComponents } from "./mdx-components";
 
 interface BlogPostPageParams {
   posts: BlogPost[];
@@ -26,10 +28,12 @@ function BlogPostPage({ posts }: BlogPostPageParams) {
             </p>
           </Link>
         </div>
-        <div className="flex flex-col w-full bg-card rounded-xl shadow-lg p-6 space-y-4">
+        <div className="mdx-content flex flex-col w-full bg-card rounded-xl shadow-lg p-6 space-y-4">
           <h1 className="text-3xl font-bold mb-2">{frontmatter.title}</h1>
           <p className="text-muted-foreground mb-4">{frontmatter.date}</p>
-          <Content />
+          <MDXProvider components={mdxComponents}>
+            <Content />
+          </MDXProvider>
         </div>
       </div>
     </div>

@@ -1,0 +1,119 @@
+---
+title: "Home Temperature Monitoring: Part 1"
+date: "2024-06-10"
+description: "Overhauling my existing temperature monitoring solution. Part 1 explores the existing solution and its limitations, and outlines the goals for the new system."
+tags: ["python", "raspberry-pi"]
+published: true
+---
+
+# The existing solution
+
+For the past few years, I've been using a Raspberry Pi to monitor the temperature in my home. It isn't a particularly necessary thing to track, but the hardest problem in practising programming is often finding a problem to solve. I had picked up a couple of Raspberry Pis from a friend a while back, and I wanted to put them to use.
+
+## The sensors
+
+The sensors I used were DS18B20 temperature sensors. These are digital temperature sensors that communicate over a 1-Wire bus, which means they only require one data line (and ground) to communicate with the Raspberry Pi. They are relatively inexpensive and easy to use, which is exactly what I needed for this project.
+
+If you're interested in setting one up, there are plenty of tutorials online—like [this one from Circuit Basics](https://www.circuitbasics.com/raspberry-pi-ds18b20-temperature-sensor-tutorial/)—that walk through the process in detail, so I won't repeat it all here.
+
+Once setup, the sensors can be read directly from the Pi's filesystem, or they can be accessed using libraries like `w1thermsensor` in Python, which makes it easy to read the temperature values programmatically.
+
+At the request of my partner, the wiring had to be hidden, so these Pis sit in some old cardboard boxes hidden in various places around the house - as long as the sensors can reach outside the box, it doesn't matter.
+
+## The data collection
+
+My initial solution for this was prioritising simplicity and speed of implementation over anything else. I wrote a simple Python script that would read the temperature from each sensor every 10 minutes, using the w1thermsensor library. The implementation to read from the sensor with this library is a small class that looks like this:
+
+```python
+"""
+Sensor abstract
+"""
+
+from w1thermsensor import W1ThermSensor
+from datetime import datetime
+import json
+
+
+class DS18B20TempSensor:
+    """
+    DS18B20 interface class
+    """
+
+    reading = {
+            "time": 0,
+            "temperature": 0
+        }
+
+    def __init__(self, sensor_name):
+        self.sensor = W1ThermSensor()
+        self.sensor_name = sensor_name
+
+    def collect_data(self):
+        temperature_in_celsius = self.sensor.get_temperature()
+        now = datetime.now()
+        now_str = now.strftime('%Y-%m-%d %H:%M:%S')
+        self.reading = {
+            "time": now_str,
+            "temperature": temperature_in_celsius
+        }
+        return self.reading
+
+    def collect_data_with_name(self):
+        reading = self.collect_data()
+        self.final_reading = {
+            "sensor_name": self.sensor_name,
+            "reading": reading
+        }
+        return self.final_reading
+```
+
+The script was scheduled to run using a cron job. This allows the script to run automatically at specified intervals without manual intervention. It is a quick way to run short-lived tasks. Something like this:
+
+```cron
+*/10 * * * * /home/tom/temp_monitoring/.venv/bin/python /home/pi/temperature_monitor.py
+```
+
+## The data storage
+
+Once a sensor had taken a reading, the data needs to be stored somewhere. Right from the start, I never wanted the sensors to be stateful. Raspberry Pis use SD cards for storage, and these can wear out over time, especially with frequent writes. I also only had two identical Raspberry Pi 3Bs, and I didn't want either of them to be a data storage device.
+
+The initial solution I came up with was to use a Google Sheet as a simple database. The script would append a new row to the sheet with the sensor name, timestamp, and temperature reading. This was a small amount of implementation to stand up, and it worked well enough initially.
+
+```python
+def __init__(self, sheet_id, secret_file_path):
+    self.sheet_id = sheet_id
+    try:
+        scopes = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/drive.file",
+                    "https://www.googleapis.com/auth/spreadsheets"]
+        credentials = service_account.Credentials.from_service_account_file(secret_file_path, scopes=scopes)
+        self.service = discovery.build('sheets', 'v4', credentials=credentials)
+    except OSError as e:
+        print(e)
+
+def insert_data(self, reading, range_name):
+    """
+    Take a reading from a sensor and input into a Google Sheet at a specified range
+    """
+    body_val = {"values": [list(reading.values())]}
+    self.service.spreadsheets().values().append(spreadsheetId=self.sheet_id, body=body_val, range=range_name,
+                                                valueInputOption='USER_ENTERED').execute()
+```
+
+This code uses the Google Sheets API to append a new row to the specified sheet. The `insert_data` method takes a reading (a dictionary with sensor name, timestamp, and temperature) and appends it to the specified range in the Google Sheet. The only painful part of this process was working out the structure of the value that needs to be sent - an object with a list of the values.
+
+## The data visualisation
+
+The final piece of the puzzle was visualising the data. For this, I used Google Looker Studio, which allows you to create dashboards and reports based on data from various sources, including Google Sheets. I created a simple dashboard that shows the temperature readings over time for each sensor.
+
+![A screenshot of the Google Looker Studio dashboard showing temperature readings over time for two sensors.](/blog-post-assets/looker-studio-dashboard.png)
+
+## Limitations of the existing solution
+
+While this solution worked well enough for a while, it had several limitations that I wanted to address in a new system:
+
+1. **Scalability**: The Google Sheet became unwieldy. There were hundreds of thousands of rows of data, and it was chugging along.
+2. **Local storage**: There was no real need for the data to be stored in the cloud. I wanted to have more control over the data and where it was stored.
+3. **Mobile access**: The Google Looker Studio dashboard was not mobile-friendly. I wanted to be able to access the data and visualisations easily from my phone.
+4. **Extensibility**: The existing system was not easily extensible. I wanted to be able to add new features and functionality easily.
+
+I was monitoring the temperature in my home, but I wanted a more robust and flexible solution. In the next part of this series, I'll outline the goals for the new system and how I implemented them.

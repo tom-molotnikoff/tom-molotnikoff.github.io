@@ -209,14 +209,14 @@ function LogoGrid() {
             idx < visibleCount ? "opacity-100" : "opacity-0"
           }`}
         >
-          <div className="flex items-center justify-center h-32 w-32 rounded-md p-2 transition-transform duration-200 group-hover:scale-110 group-hover:shadow-lg dark:bg-white/5">
+          <div className="flex items-center justify-center h-32 w-32 rounded-md transition-transform duration-200 group-hover:scale-110 group-hover:shadow-lg dark:bg-white/5">
             <Popover
               key={logo.name}
               open={openIndex === idx}
               onOpenChange={(open) => setOpenIndex(open ? idx : null)}
             >
               <PopoverTrigger asChild>
-                <button className="flex flex-col items-center  focus:outline-none">
+                <button className="flex flex-1 flex-col items-center  focus:outline-none">
                   <img
                     src={`/logos/${logo.file}`}
                     alt={logo.name}
