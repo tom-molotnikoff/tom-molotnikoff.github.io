@@ -62,7 +62,7 @@ function ContactForm() {
       >
         <TypographyH2>Contact Me</TypographyH2>
         <p className="text-muted-foreground">
-          Feel free to reach out for inquiries, or just to say hello!
+          Feel free to reach out for enquiries, or just to say hello!
         </p>
         <FormField
           control={form.control}
