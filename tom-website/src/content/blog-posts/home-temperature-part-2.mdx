@@ -1,0 +1,77 @@
+---
+title: "Home Temperature Monitoring: Part 2"
+date: "2025-09-12"
+description: "In Part 2, I plan the replacement solution for the temperature monitoring system. This includes the hardware and software components, as well as the architecture of the new system."
+tags: ["python", "raspberry-pi", "go", "docker", "mysql", "typescript", "react"]
+published: false
+---
+
+import { Link } from "react-router";
+
+# Planning the new solution
+
+## Summary of the existing solution
+
+In the <Link to="/blog/home-temperature-part-1">previous part</Link>, I detailed my original home temperature monitoring setup, which used Raspberry Pi devices and DS18B20 sensors to collect data. The system stored readings in Google Sheets and visualized them with Google Looker Studio. While effective, this approach had several drawbacks - including limited scalability, reliance on cloud storage and poor mobile accessibility. There's always room to overengineer an overengineered project.
+
+## Goals for the new solution
+
+The new system should address the limitations of the previous setup while introducing new features. The primary goals are:
+
+1. **Local Data Storage**: Store data locally to eliminate dependency on cloud services.
+2. **Scalability**: Design the system to easily accommodate additional sensors and data points
+3. **Mobile Accessibility**: Ensure the system is accessible and user-friendly on mobile devices.
+4. **Reliable deployment**: Use containerization to simplify deployment and updates.
+
+## Hardware components
+
+The new solution will continue to make use of the existing Raspberry Pi devices and DS18B20 sensors. However, I plan to add a new Raspberry Pi 5 to act as a central hub for data collection and processing. This device will run the main application, storage and frontend services. The existing sensor's software will be updated to allow the aggregation of data from multiple sensors.
+
+## Software components
+
+### Storage
+
+For local data storage, MySQL is a reasonable choice. It is massively popular, well-documented and has a strong ecosystem. The amount of data being collected is relatively small compared to what MySQL can handle, so performance should not be an issue.
+
+### Backend
+
+The backend needs to be responsible for collecting data from the sensors, storing it in the database and providing an API for the frontend to retrieve and display the data.
+
+There are no shortage of options for building a backend with these responsibilities. For this project, the backend will be developed using Go. I haven't used Go much before, but it supposedly provides very easy API and concurrency development, so it's worth a try.
+
+### Frontend
+
+The frontend will be a web application that provides a user-friendly interface for viewing temperature data. It should be responsive and work well on both desktop and mobile devices. A nice graph wouldn't hurt either. I've used React and Typescript for this type of thing before, so I'll stick with what I know. For the graphing library, I've been hearing about [Recharts](https://recharts.org/en-US) recently, and it looks quite nice.
+
+### Raspberry Pi sensor software
+
+The existing Raspberry Pi sensor software uses a cron task to read the data and send it to Google Sheets. The Python script that collects the data is short lived, and exits when finished. This is not ideal for the new system. The sensor software should really stay written in Python, so I can carry on using the w1thermsensor library. However, I plan to change the architecture of the software to be a long-running service that can be prompted to collect data through an API, returning readings in JSON.
+
+### Containerisation
+
+To simplify deployment and management of the various components, Docker will be used to containerize the backend, frontend and database services. This will allow for easy updates and scaling in the future. Docker thrives in single application containers, so the backend, frontend and database will each run in their own container. Docker Compose will be used to orchestrate the multi-container setup.
+
+## Rough diagram
+
+Here's a rough diagram of the planned architecture:
+
+```plaintext
++-------------------+
+| Raspberry Pi 3    |
+| (Sensors)         |
++-------------------+
+        |
+      JSON
+        |
+        v
++-------------------+
+| Raspberry Pi 5    |
+| (Backend,         |
+| Frontend,         |
+| MySQL database)   |
++-------------------+
+```
+
+## Next steps
+
+The next steps involve setting up the development environment, creating the Docker Compose configuration and starting the implementation of the backend, frontend and sensor software. Once the components are developed, they will be tested individually before integrating them into a complete system. Finally, the system will be deployed on the Raspberry Pi devices and monitored for performance and reliability.

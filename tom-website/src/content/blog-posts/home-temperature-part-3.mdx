@@ -1,0 +1,228 @@
+---
+title: "Home Temperature Monitoring: Part 3"
+date: "2025-09-19"
+description: "In Part 3, I work on the implementation of the sensor API and the backend service. Specifically, I focus on creating an API for the Raspberry Pi sensors to provide temperature readings and building a backend service in Go to collect and store this data in a MySQL database."
+tags: ["python", "raspberry-pi", "go", "mysql"]
+published: false
+---
+
+# Implementing the sensor API and backend service
+
+## Sensor API
+
+The first step in the implementation is to update the Raspberry Pi sensor software to provide an API for data collection. The existing Python script that reads the temperature from the DS18B20 sensors will be modified to run as a long-lived service. This service will expose an HTTP endpoint that can be called to trigger a temperature reading and return the result in JSON format.
+
+The API really only needs a single endpoint in this case. Much of the functionality can be ported over from the existing solution.
+
+### Implementation details
+
+To create the API, I will use Flask, a lightweight web framework for Python. Flask is easy to set up and has a simple routing mechanism, making it ideal for this small service.
+Here's a basic outline of the sensor API:
+
+```python
+import os
+from ds18b20_sensor import DS18B20TempSensor
+from dotenv import load_dotenv
+from flask import Flask, request, jsonify, abort
+
+app = Flask(__name__)
+
+load_dotenv()
+
+TEMP_SENSOR_NAME = os.getenv("TEMP_SENSOR_NAME")
+
+@app.get("/temperature")
+def get_temperature():
+    try:
+        sensor = DS18B20TempSensor(TEMP_SENSOR_NAME)
+        return jsonify(sensor.collect_data_with_name())
+    except Exception as e:
+        abort(500)
+
+@app.errorhandler(500)
+def internal_error(error):
+    return {"message": "couldn't take a reading"},500
+```
+
+As shown above, the API has a single endpoint `/temperature` that, when called, reads the temperature from the DS18B20 sensor and returns it in JSON format. If there's an error while reading the sensor, it returns a 500 status code with an appropriate message. There really isn't anything more that needs to be done here.
+
+Down the line, replacing this architecture with something like MQTT might be a good idea, but for now, this simple HTTP API will suffice.
+
+## Backend service
+
+The next step is to create a backend service that will periodically call the sensor API to collect temperature data and store it in a database. For this, I will use Go, as it is well-suited for building efficient and scalable backend services.
+
+### Implementation details
+
+The http package in Go should be a good fit for requesting the temperature data from the sensor API. The database will come later, for now, I just need to get the data from the APIs to the service.
+
+Requesting the data from a sensor can be done like this:
+
+```go
+func take_readings() ([]*SensorReading, error) {
+	responses := make([]*SensorReading, 0)
+	for _, url := range sensorUrls {
+		readingUrl := url + "temperature"
+		resp, err := http.Get(readingUrl)
+		if err != nil {
+			log.Printf("Issue fetching temperature from a sensor: %s\n", err)
+			continue
+		}
+		defer resp.Body.Close()
+		response := new(SensorReading)
+		err = json.NewDecoder(resp.Body).Decode(response)
+
+		if err != nil {
+			log.Printf("Issue reading request body: %s\n", err)
+			continue
+		}
+
+		responses = append(responses, response)
+	}
+	err := add_list_of_readings(responses)
+	if err != nil {
+		log.Printf("Issue persisting readings to database: %s\n", err)
+		return nil, err
+	}
+	err = sendAlertEmailIfNeeded(responses)
+	if err != nil {
+		log.Printf("Failed to send alerts: %s", err)
+	}
+	return responses, err
+}
+```
+
+This function iterates over a list of sensor URLs, makes a GET request to each sensor's `/temperature` endpoint, and decodes the JSON response into a `SensorReading` struct. If any errors occur during the request or decoding process, they are logged, and the function continues to the next sensor - it isn't vital to ensure they are retried, the data isn't that essential. After collecting all readings, it calls `add_list_of_readings` to store them in the database and `sendAlertEmailIfNeeded` to check if any alerts need to be sent based on the readings.
+
+With the data collection in place, the next step is to set up a scheduler to call this function periodically. For this, I will use a bit of Go concurrency with a ticker to trigger the readings at regular intervals.
+
+```go
+func startPeriodicSensorCollection() {
+	intervalStr := APPLICATION_PROPERTIES["sensor.collection.interval"]
+	intervalSec, err := strconv.Atoi(intervalStr)
+	if err != nil {
+		log.Printf("Invalid sensor.collection.interval value: %s, defaulting to 60 seconds", intervalStr)
+		intervalSec = 60
+	}
+	go func() {
+		ticker := time.NewTicker(time.Duration(intervalSec) * time.Second)
+		defer ticker.Stop()
+		for {
+			_, err := take_readings()
+			if err != nil {
+				log.Printf("Error taking readings: %s", err)
+			}
+
+			<-ticker.C
+		}
+	}()
+}
+```
+
+This function reads the interval from the application properties, defaults to 60 seconds if the value is invalid, and starts a goroutine that uses a ticker to call `take_readings` at the specified interval.
+
+The backend service is now able to periodically collect temperature data. The next step is to set up the database to store the readings, then I can work on an API to service the frontend.
+
+### Database implementation
+
+For the database, I will use MySQL. The database schema will include a table for storing temperature readings, with fields for the sensor name, temperature value, and timestamp.
+
+Here's a basic outline of the database schema:
+
+```sql
+CREATE TABLE IF NOT EXISTS %s (
+			id INT AUTO_INCREMENT,
+			sensor_name TEXT NOT NULL,
+			time DATETIME NOT NULL,
+			temperature FLOAT(4) NOT NULL,
+			PRIMARY KEY (id)
+		);
+```
+
+This table will store each temperature reading along with the sensor name and the time the reading was taken. The `id` field is an auto-incrementing primary key to uniquely identify each record.
+
+After speaking to a friend, I put in some indexes on the `sensor_name` and `time` fields to improve query performance, especially for queries that filter by sensor or time range.
+
+```sql
+CREATE INDEX idx_time ON temperature_readings (time DESC);
+CREATE INDEX idx_sensor_name ON temperature_readings (sensor_name(16));
+```
+
+To do this in Go, using the `database/sql` package, it is really just a case of running DB.Exec with the above SQL statements:
+
+```go
+DB.Exec(`CREATE INDEX idx_time ON temperature_readings (time DESC);`)
+```
+
+To tie this together, the backend needs to have some functions for retrieving and storing the data in the database. To add the readings, I will create a function that takes a list of `SensorReading` structs and inserts them into the database.
+
+```go
+func add_list_of_readings(readings []*SensorReading) error {
+	query := fmt.Sprintf("INSERT INTO %s (sensor_name, time, temperature) VALUES (?, ?, ?)", TableTemperatureReadings)
+	for _, reading := range readings {
+		_, err := DB.Exec(query, reading.SensorName, reading.Reading.Time, strconv.FormatFloat(reading.Reading.Temperature, 'f', -1, 64))
+		if err != nil {
+			return fmt.Errorf("issue persisting readings to database: %s", err)
+		}
+		log.Printf("Saved a reading from Sensor(%s) into the database", reading.SensorName)
+	}
+	return nil
+}
+```
+
+For retrieving the data, I will create a function that takes a time range and returns the corresponding temperature readings. Since I will be graphing the data, there will always be a need to get readings between two timestamps.
+
+```go
+// This function will fetch readings from the database between the specified start and end dates.
+// It will log the readings or any errors encountered during the process.
+func getReadingsBetweenDates(tableName string, startDate string, endDate string) (*[]APIReading, error) {
+	if tableName != TableTemperatureReadings && tableName != TableHourlyAverageTemperature {
+		return nil, fmt.Errorf("invalid table name: %s", tableName)
+	}
+
+	query := fmt.Sprintf("SELECT * FROM %s WHERE time BETWEEN ? AND ? ORDER BY time ASC", tableName)
+
+	rows, err := DB.Query(query, startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching readings between %s and %s: %w", startDate, endDate, err)
+	}
+	defer rows.Close()
+	var readings []Reading
+	for rows.Next() {
+		var reading Reading
+
+		err := rows.Scan(&reading.Id, &reading.SensorName, &reading.Time, &reading.Temperature)
+		if err != nil {
+			log.Printf("Error scanning row: %s", err)
+			continue
+		}
+		readings = append(readings, reading)
+	}
+	if err = rows.Err(); err != nil {
+		log.Printf("Error iterating over rows: %s", err)
+		return nil, fmt.Errorf("error iterating over rows: %s", err)
+	}
+	var apiReadings []APIReading
+	for _, r := range readings {
+		apiReadings = append(apiReadings, APIReading{
+			SensorName: r.SensorName,
+			Reading: struct {
+				Temperature float64 `json:"temperature"`
+				Time        string  `json:"time"`
+			}{
+				Temperature: math.Round(r.Temperature*10) / 10,
+				Time:        r.Time,
+			},
+		})
+	}
+	return &apiReadings, nil
+}
+```
+
+This function constructs a SQL query to select readings from the specified table between the given start and end dates. It scans the results into a slice of `Reading` structs, then converts them into `APIReading` structs for easier consumption by the API.
+
+With the database functions in place, the backend service is now capable of storing and retrieving temperature data. The next step is to create an API for the frontend to access this data, which will be covered in the next part of this series.
+
+## Summary
+
+In this part of the series, I implemented the sensor API on the Raspberry Pi to provide temperature readings and created a backend service in Go to periodically collect and store this data in a MySQL database. The backend service includes functions for adding and retrieving temperature readings, setting the stage for building a frontend to visualize the data. In the next part, I will focus on developing the frontend application to display the temperature data in a user-friendly manner.
