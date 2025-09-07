@@ -1,14 +1,19 @@
 import { TypographyH2 } from "@/components/typography";
+import JobHistory from "@/content/job-history";
 import LogoGrid from "@/content/logo-grid";
 
 function Experience() {
   return (
-    <section className="flex flex-col items-center w-full py-5">
-      <TypographyH2>Technologies I Work With</TypographyH2>
-      <div className="rounded-2xl shadow-lg p-3 w-full max-w-6xl">
+    <div className="flex flex-col items-center w-full gap-y-5 py-5 pl-5 pr-5">
+      <div className="flex flex-col items-center w-full gap-y-5 py-5 ">
+        <TypographyH2>Technologies I've Worked With</TypographyH2>
         <LogoGrid />
       </div>
-    </section>
+      <div className="flex flex-col items-center w-full gap-y-5 py-5">
+        <TypographyH2>Roles I've Held</TypographyH2>
+        <JobHistory />
+      </div>
+    </div>
   );
 }
 
