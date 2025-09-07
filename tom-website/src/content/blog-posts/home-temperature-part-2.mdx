@@ -1,9 +1,9 @@
 ---
 title: "Home Temperature Monitoring: Part 2"
-date: "2025-09-12"
+date: "2025-09-07"
 description: "In Part 2, I plan the replacement solution for the temperature monitoring system. This includes the hardware and software components, as well as the architecture of the new system."
 tags: ["python", "raspberry-pi", "go", "docker", "mysql", "typescript", "react"]
-published: false
+published: true
 ---
 
 import { Link } from "react-router";
@@ -60,10 +60,11 @@ Here's a rough diagram of the planned architecture:
 | Raspberry Pi 3    |
 | (Sensors)         |
 +-------------------+
+        ^
         |
-      JSON
+Readings fetched as JSON
         |
-        v
+        |
 +-------------------+
 | Raspberry Pi 5    |
 | (Backend,         |
@@ -74,4 +75,4 @@ Here's a rough diagram of the planned architecture:
 
 ## Next steps
 
-The next steps involve setting up the development environment, creating the Docker Compose configuration and starting the implementation of the backend, frontend and sensor software. Once the components are developed, they will be tested individually before integrating them into a complete system. Finally, the system will be deployed on the Raspberry Pi devices and monitored for performance and reliability.
+The next steps involve setting up the development environment, creating the Docker Compose configuration and starting the implementation of the backend, frontend and sensor software. Finally, the system will be deployed on the Raspberry Pi devices.
