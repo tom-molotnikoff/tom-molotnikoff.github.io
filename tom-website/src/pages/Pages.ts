@@ -2,7 +2,12 @@ import Home from "@/pages/home/Home";
 import Experience from "@/pages/experience/Experience";
 import Contact from "./contact/Contact";
 import Blog from "./blog/Blog";
-
+import {
+  Home as HomeIcon,
+  IdCardLanyard,
+  Send,
+  NotebookPen,
+} from "lucide-react";
 // Define the layout of the pages. This is used in the router and the navbar.
 // The order matters.
 // The name must be unique, the href is used to route, the print_name is used in the navbar,
@@ -14,6 +19,7 @@ export const pages: {
   react_router_path: string;
   print_name: string;
   root_href: string;
+  icon: React.ComponentType;
   component: React.ComponentType;
 }[] = [
   {
@@ -21,6 +27,7 @@ export const pages: {
     react_router_path: "/",
     root_href: "/",
     print_name: "Home",
+    icon: HomeIcon,
     component: Home,
   },
   {
@@ -28,6 +35,7 @@ export const pages: {
     react_router_path: "/experience",
     root_href: "/experience",
     print_name: "Experience",
+    icon: IdCardLanyard,
     component: Experience,
   },
   {
@@ -35,6 +43,7 @@ export const pages: {
     react_router_path: "/contact",
     root_href: "/contact",
     print_name: "Contact",
+    icon: Send,
     component: Contact,
   },
   {
@@ -42,6 +51,7 @@ export const pages: {
     root_href: "/blog",
     react_router_path: "/blog/*",
     print_name: "Blog",
+    icon: NotebookPen,
     component: Blog,
   },
 ];

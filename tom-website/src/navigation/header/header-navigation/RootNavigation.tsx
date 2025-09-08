@@ -5,23 +5,44 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { pages } from "@/pages/Pages";
+import { Bug } from "lucide-react";
 import { NavLink } from "react-router";
 
 function RootNavigation() {
   return (
     <NavigationMenu viewport={false}>
-      <NavigationMenuList>
+      <NavigationMenuList className="gap-y-20">
         {pages.map(
-          (page: { root_href: string; print_name: string; name: string }) => (
+          (page: {
+            root_href: string;
+            print_name: string;
+            name: string;
+            icon: React.ComponentType;
+          }) => (
             <NavigationMenuItem key={page.name}>
               <NavigationMenuLink asChild>
-                <NavLink className="text-sidebar-primary" to={page.root_href}>
+                <NavLink
+                  className="flex flex-1 flex-row items-center"
+                  to={page.root_href}
+                >
+                  <page.icon />
                   {page.print_name}
                 </NavLink>
               </NavigationMenuLink>
             </NavigationMenuItem>
           )
         )}
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
+            <a
+              className="flex flex-1 flex-row items-center"
+              href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/issues"
+            >
+              <Bug />
+              Report an issue
+            </a>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
       </NavigationMenuList>
     </NavigationMenu>
   );

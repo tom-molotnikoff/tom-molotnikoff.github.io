@@ -1,3 +1,4 @@
+import { TypographyH2 } from "@/components/typography";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,7 @@ import {
 import { pages } from "@/pages/Pages";
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router";
+import { Bug, GitFork } from "lucide-react";
 
 function SidebarImpl() {
   const { setOpenMobile } = useSidebar();
@@ -26,16 +28,21 @@ function SidebarImpl() {
 
   return (
     <Sidebar>
-      <SidebarHeader />
+      <SidebarHeader>
+        <TypographyH2>tom_molo.me</TypographyH2>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Pages</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {pages.map((page) => (
-                <SidebarMenuItem key={page.name}>
+                <SidebarMenuItem className="mb-2" key={page.name}>
                   <SidebarMenuButton asChild>
-                    <Link to={page.root_href}>{page.print_name}</Link>
+                    <Link to={page.root_href}>
+                      <page.icon />
+                      {page.print_name}
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -43,7 +50,31 @@ function SidebarImpl() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
+      <SidebarFooter>
+        <SidebarGroup>
+          <SidebarGroupLabel>Feedback</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/issues">
+                    <Bug />
+                    Report an issue
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <a href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/fork">
+                    <GitFork />
+                    Fork this repo
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarFooter>
     </Sidebar>
   );
 }
