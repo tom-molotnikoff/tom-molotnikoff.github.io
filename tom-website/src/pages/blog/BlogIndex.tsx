@@ -147,7 +147,7 @@ function BlogIndex({ posts }: BlogIndexPageParams) {
 
         {currentlyShownPosts.map(({ name, frontmatter }) => (
           <Link to={`/blog/${name}`} key={name} className="w-full group">
-            <Card className="w-full bg-card hover:shadow-lg transition-shadow hover:bg-muted/90 hover:scale-[1.01] transition-all">
+            <Card className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform">
               <CardHeader>
                 <CardTitle>
                   <TypographyH3 className="group-hover:underline transition-all">

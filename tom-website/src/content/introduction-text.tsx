@@ -28,7 +28,7 @@ function IntroductionText() {
         </TypographyP>
         <TypographyP>
           Day-to-day, I build distributed computing environments, automate with
-          cloud resources & conainerisation platforms, and perform user
+          cloud resources & containerisation platforms, and perform user
           acceptance testing across technologies like Hadoop, Azure, AWS, Google
           Cloud, Databricks, and Snowflake.
         </TypographyP>
