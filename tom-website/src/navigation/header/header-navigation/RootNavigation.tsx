@@ -11,7 +11,7 @@ import { NavLink } from "react-router";
 function RootNavigation() {
   return (
     <NavigationMenu viewport={false}>
-      <NavigationMenuList className="gap-y-20">
+      <NavigationMenuList className="gap-x-5">
         {pages.map(
           (page: {
             root_href: string;
