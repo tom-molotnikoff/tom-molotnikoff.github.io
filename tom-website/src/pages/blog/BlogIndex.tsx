@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
+import { Helmet } from "@dr.pogodin/react-helmet";
 
 interface BlogIndexPageParams {
   posts: BlogPost[];
@@ -69,104 +70,150 @@ function BlogIndex({ posts }: BlogIndexPageParams) {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex flex-1 justify-center flex-col items-center mt-10 mb-10 ml-3 mr-3">
-      <div className="w-full min-w-[320px] max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto flex flex-col items-start gap-y-10 ml-3 mr-3 md:ml-10 md:mr-10">
-        <TypographyH2>Blog Posts</TypographyH2>
-        <div
-          className={
-            isMobile
-              ? `flex flex-1 flex-col w-full gap-y-3`
-              : `flex flex-1 gap-4`
-          }
-        >
-          <TypographyH3>Search:</TypographyH3>
-          <Input
-            className="w-[180px]"
-            placeholder="Search posts..."
-            onChange={(e) => {
-              const query = e.target.value.toLowerCase();
-              if (query === "") {
-                setCurrentlyShownPosts(posts);
-              } else {
-                const filteredPosts = posts.filter((post) => {
+    <>
+      <Helmet>
+        <title>Blog | Tom Molotnikoff's Personal Website</title>
+        <meta
+          name="description"
+          content="Read blog posts by Tom Molotnikoff on software development, distributed computing, cloud platforms, technology insights and home automation. Stay up to date with the latest articles and tutorials."
+        />
+        <meta
+          name="keywords"
+          content="Tom Molotnikoff, blog, software development, distributed computing, cloud computing, tutorials, technology, programming, personal website, raspberry pi, home automation, iot, smart home, docker"
+        />
+        <meta name="author" content="Tom Molotnikoff" />
+        <meta
+          property="og:title"
+          content="Blog | Tom Molotnikoff's Personal Website"
+        />
+        <meta
+          property="og:description"
+          content="Read blog posts by Tom Molotnikoff on software development, distributed computing, cloud platforms, and technology insights."
+        />
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:url"
+          content="https://tom-molotnikoff.github.io/blog"
+        />
+        <meta
+          property="og:image"
+          content="https://tom-molotnikoff.github.io/og-image.png"
+        />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Blog | Tom Molotnikoff's Personal Website"
+        />
+        <meta
+          name="twitter:description"
+          content="Read blog posts by Tom Molotnikoff on software development, distributed computing, cloud platforms, and technology insights."
+        />
+        <meta
+          name="twitter:image"
+          content="https://tom-molotnikoff.github.io/og-image.png"
+        />
+      </Helmet>
+
+      <div className="flex flex-1 justify-center flex-col items-center mt-10 mb-10 ml-3 mr-3">
+        <div className="w-full min-w-[320px] max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto flex flex-col items-start gap-y-10 ml-3 mr-3 md:ml-10 md:mr-10">
+          <TypographyH2>Blog Posts</TypographyH2>
+          <div
+            className={
+              isMobile
+                ? `flex flex-1 flex-col w-full gap-y-3`
+                : `flex flex-1 gap-4`
+            }
+          >
+            <TypographyH3>Search:</TypographyH3>
+            <Input
+              className="w-[180px]"
+              placeholder="Search posts..."
+              onChange={(e) => {
+                const query = e.target.value.toLowerCase();
+                if (query === "") {
+                  setCurrentlyShownPosts(posts);
+                } else {
+                  const filteredPosts = posts.filter((post) => {
+                    return (
+                      post.frontmatter.title.toLowerCase().includes(query) ||
+                      post.frontmatter.description
+                        .toLowerCase()
+                        .includes(query) ||
+                      post.frontmatter.tags?.some((tag: string) =>
+                        tag.toLowerCase().includes(query)
+                      )
+                    );
+                  });
+                  setCurrentlyShownPosts(filteredPosts);
+                }
+              }}
+            />
+          </div>
+
+          <div
+            className={
+              isMobile
+                ? `flex flex-1 flex-col w-full gap-y-3`
+                : `flex flex-1 gap-4`
+            }
+          >
+            <TypographyH3>Filters:</TypographyH3>
+            <Select onValueChange={handleTagChange as (value: string) => void}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tags</SelectItem>
+                {tags.map((tag) => {
                   return (
-                    post.frontmatter.title.toLowerCase().includes(query) ||
-                    post.frontmatter.description
-                      .toLowerCase()
-                      .includes(query) ||
-                    post.frontmatter.tags?.some((tag: string) =>
-                      tag.toLowerCase().includes(query)
-                    )
+                    <SelectItem value={tag} key={tag}>
+                      {tag}
+                    </SelectItem>
                   );
-                });
-                setCurrentlyShownPosts(filteredPosts);
-              }
-            }}
-          />
-        </div>
+                })}
+              </SelectContent>
+            </Select>
+            <Select onValueChange={handleDateChange as (value: string) => void}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Dates</SelectItem>
+                {months.map((date) => {
+                  return (
+                    <SelectItem value={date} key={date}>
+                      {date.replace("-", "/")}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div
-          className={
-            isMobile
-              ? `flex flex-1 flex-col w-full gap-y-3`
-              : `flex flex-1 gap-4`
-          }
-        >
-          <TypographyH3>Filters:</TypographyH3>
-          <Select onValueChange={handleTagChange as (value: string) => void}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Tag" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Tags</SelectItem>
-              {tags.map((tag) => {
-                return (
-                  <SelectItem value={tag} key={tag}>
-                    {tag}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Select onValueChange={handleDateChange as (value: string) => void}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Date" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Dates</SelectItem>
-              {months.map((date) => {
-                return (
-                  <SelectItem value={date} key={date}>
-                    {date.replace("-", "/")}
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+          {currentlyShownPosts.map(({ name, frontmatter }) => (
+            <Link to={`/blog/${name}`} key={name} className="w-full group">
+              <Card className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform">
+                <CardHeader>
+                  <CardTitle>
+                    <TypographyH3 className="group-hover:underline transition-all">
+                      {frontmatter.title}
+                    </TypographyH3>
+                  </CardTitle>
+                  <CardDescription>{frontmatter.date}</CardDescription>
+                  <CardDescription className="text-sm text-muted-foreground">
+                    {frontmatter.tags?.join(", ")}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TypographyP>{frontmatter.description}</TypographyP>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
-
-        {currentlyShownPosts.map(({ name, frontmatter }) => (
-          <Link to={`/blog/${name}`} key={name} className="w-full group">
-            <Card className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform">
-              <CardHeader>
-                <CardTitle>
-                  <TypographyH3 className="group-hover:underline transition-all">
-                    {frontmatter.title}
-                  </TypographyH3>
-                </CardTitle>
-                <CardDescription>{frontmatter.date}</CardDescription>
-                <CardDescription className="text-sm text-muted-foreground">
-                  {frontmatter.tags?.join(", ")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TypographyP>{frontmatter.description}</TypographyP>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
       </div>
-    </div>
+    </>
   );
 }
 

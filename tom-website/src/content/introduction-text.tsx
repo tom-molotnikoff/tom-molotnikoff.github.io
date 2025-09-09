@@ -19,7 +19,7 @@ function IntroductionText() {
       </div>
       <div className="flex flex-col max-w-2xl mx-auto space-y-4">
         <TypographyP>
-          I’m passionate about programming and software development, with a
+          I'm passionate about programming and software development, with a
           particular interest in cloud & distributed computing. Currently, I
           work as a Staff User Acceptance Tester & Team Lead at{" "}
           <span className="font-semibold">Cirata</span> in Sheffield, where I
