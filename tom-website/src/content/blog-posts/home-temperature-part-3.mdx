@@ -1,9 +1,9 @@
 ---
 title: "Home Temperature Monitoring: Part 3"
-date: "2025-09-19"
+date: "2025-09-10"
 description: "In Part 3, I work on the implementation of the sensor API and the backend service. Specifically, I focus on creating an API for the Raspberry Pi sensors to provide temperature readings and building a backend service in Go to collect and store this data in a MySQL database."
 tags: ["python", "raspberry-pi", "go", "mysql", "home-automation"]
-published: false
+published: true
 ---
 
 # Implementing the sensor API and backend service
@@ -46,7 +46,7 @@ def internal_error(error):
 
 As shown above, the API has a single endpoint `/temperature` that, when called, reads the temperature from the DS18B20 sensor and returns it in JSON format. If there's an error while reading the sensor, it returns a 500 status code with an appropriate message. There really isn't anything more that needs to be done here.
 
-Down the line, replacing this architecture with something like MQTT might be a good idea, but for now, this simple HTTP API will suffice.
+Down the line, replacing this architecture with something like MQTT might be a good idea, but for now, this simple HTTP API will suffice. This is probably sending more data than is necessary, but it works.
 
 ## Backend service
 
@@ -219,10 +219,10 @@ func getReadingsBetweenDates(tableName string, startDate string, endDate string)
 }
 ```
 
-This function constructs a SQL query to select readings from the specified table between the given start and end dates. It scans the results into a slice of `Reading` structs, then converts them into `APIReading` structs for easier consumption by the API.
+This function constructs a SQL query to select readings from the specified table between the given start and end dates. It scans the results into a slice of `Reading` structs, then converts them into `APIReading` structs for easier consumption by the API. I should abstract that conversion out somewhere, but for now, this will do.
 
 With the database functions in place, the backend service is now capable of storing and retrieving temperature data. The next step is to create an API for the frontend to access this data, which will be covered in the next part of this series.
 
 ## Summary
 
-In this part of the series, I implemented the sensor API on the Raspberry Pi to provide temperature readings and created a backend service in Go to periodically collect and store this data in a MySQL database. The backend service includes functions for adding and retrieving temperature readings, setting the stage for building a frontend to visualize the data. In the next part, I will focus on developing the frontend application to display the temperature data in a user-friendly manner.
+In this part of the series, I implemented the sensor API on the Raspberry Pi to provide temperature readings and created a backend service in Go to periodically collect and store this data in a MySQL database. The backend service includes functions for adding and retrieving temperature readings, setting the stage for building a frontend to visualize the data. In the next part, I will focus on developing the API for the backend, and the frontend application to display the temperature data in a user-friendly manner.
