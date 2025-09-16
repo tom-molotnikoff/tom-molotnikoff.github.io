@@ -1,0 +1,378 @@
+---
+title: "Home Temperature Monitoring: Part 4"
+date: "2025-09-16"
+description: "In this part, I put together the Go API and the React frontend to create a complete home temperature monitoring system. The result is a dashboard that displays current and historical temperature data from sensors around my home."
+tags: ["go", "gin-api", "react", "typescript", "websocket", "recharts", "raspberry-pi", "home-automation", "iot"]
+published: true
+---
+
+# Writing a Go (Gin) API to serve the data to the React frontend
+
+In the previous parts of this series, I set up the foundations of Sensor Hub to aggregate and store temperature data from various sensors around my home. Aggregating the data was the first step, but to make this useful, there needs to be some way to visualise it. In this part, I will put together the API for the backend of Sensor Hub and then the React frontend to display the data.
+
+## Setting up the Go API
+
+The Gin framework is super easy to use and has good documentation. Before starting, I wanted to think about the API endpoints I would need. I decided on the following:
+- `GET /sensors/temperature`: Get the latest temperature readings from all sensors.
+- `GET /sensors/temperature/:sensorName`: Get the latest temperature reading from a specific sensor.
+- `GET /readings/hourly/between`: Get hourly aggregated temperature readings between two timestamps.
+- `GET /readings/between`: Get all temperature readings between two timestamps.
+
+With these endpoints in mind, I set up a new Go package inside Sensor Hub and started working with the Gin framework. The actual definition of the API is quite straightforward. Here is the code that sets up the API server and defines the routes:
+
+```go
+func InitialiseAndListen() {
+	log.Println("API server is starting...")
+	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // For development, allow all
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+	router.GET("/sensors/temperature", collectAllTemperatureSensorsHandler)
+	router.GET("/sensors/temperature/:sensorName", collectSpecificTemperatureSensorHandler)
+	router.GET("/readings/between", getReadingsBetweenDatesHandler)
+	router.GET("/ws/current-temperatures", currentTemperaturesWebSocket)
+	log.Println("API server is running on port 8080")
+	router.Run("0.0.0.0:8080")
+}
+``` 
+
+This code initializes the Gin router, hacks around the CORS complaints (reminder: this is being run on my home network only), and defines the routes for the API endpoints. Each route is associated with a handler function that processes the request and returns the appropriate response. The real work happens in these handler functions. 
+
+### Handler functions
+
+Here is an example of one of the handler functions that retrieves the latest temperature readings from all sensors:
+
+```go
+// GET /sensors/temperature
+// This handler will collect temperature readings from all sensors
+// and return them as a JSON response.
+func collectAllTemperatureSensorsHandler(ctx *gin.Context) {
+	log.Println("Collecting all sensor readings...")
+	readings, err := sensors.GetReadingFromAllTemperatureSensors()
+	if err != nil {
+		log.Printf("Error collecting readings: %s", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error collecting readings"})
+		return
+	}
+
+	ctx.IndentedJSON(http.StatusOK, readings)
+}
+```
+
+This function calls a method from the `sensors` package to get the latest readings from all temperature sensors. If successful, it returns the readings as a JSON response. If there is an error, it returns a 500 status code with an error message.
+
+The other handler functions follow a similar pattern, each tailored to the specific endpoint's requirements. For example, the handler for getting readings between two timestamps would parse the query parameters for the start and end times, validate them, and then query the database for the relevant data.
+
+```go
+// GET /readings/between
+// This handler will retrieve temperature readings between two dates.
+// It will parse the start and end dates from the query parameters,
+// fetch the readings from the database, and return them as a JSON array.
+func getReadingsBetweenDatesHandler(ctx *gin.Context) {
+	startDate := ctx.Query("start")
+	endDate := ctx.Query("end")
+	if startDate == "" || endDate == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Start and end dates are required"})
+		return
+	}
+
+	_, err := time.Parse("2006-01-02", startDate)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid start date format, expected YYYY-MM-DD"})
+		return
+	}
+
+	_, err = time.Parse("2006-01-02", endDate)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid end date format, expected YYYY-MM-DD"})
+		return
+	}
+
+	log.Printf("Fetching readings between %s and %s", startDate, endDate)
+	readings, err := database.GetReadingsBetweenDates(database.TableTemperatureReadings, startDate, endDate)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+	ctx.IndentedJSON(http.StatusOK, readings)
+}
+```
+
+There was also a WebSocket endpoint added in the InitialiseAndListen function, but we'll come back to that.
+
+### React frontend
+
+With the API set up, I moved on to creating a simple React frontend to display the temperature data. I used Vite to set up the project quickly. The frontend consists of a few components: a main dashboard to show the latest readings, a chart to visualize historical data, and date pickers to filter the data. 
+
+I wanted to use Recharts for the charting library, mostly because I'd heard about it and have never used it before. It turned out to be a good choice, the resulting chart was tidy and performant enough for the amount of data I was flinging at it.
+
+The main dashboard component fetches the data from the API and passes it down to the various components. The bulk of the work is handled by these components:
+
+```tsx
+<>
+  <SensorTriggerButtons
+    sensors={sensors}
+    onButtonClick={triggerReading}
+  />
+  <CurrentTemperatures currentReadings={currentReadings} />
+  <DateRangePicker
+    startDate={startDate}
+    endDate={endDate}
+    onStartDateChange={setStartDate}
+    onEndDateChange={setEndDate}
+    invalidDate={invalidDate}
+  />
+  {Array.isArray(readings) && readings.length > 0 ? (
+    <TemperatureGraph readings={readings} sensors={sensors} />
+  ) : (
+    <p>No readings found for the selected date range.</p>
+  )}
+</>
+```
+
+### SensorTriggerButtons.tsx
+
+This is a simple component that renders buttons for each sensor. When a button is clicked, it triggers a new reading from the corresponding sensor. The function to trigger the reading is passed down as a prop, to keep it relatively reusable (not that I plan to use it anywhere else right now).
+
+```tsx
+import { useState } from "react";
+import Button from "@mui/material/Button";
+import { useIsMobile } from "../hooks/useMobile";
+
+function SensorTriggerButtons({
+  sensors,
+  onButtonClick,
+}: {
+  sensors: string[];
+  onButtonClick: (sensor: string) => Promise<void>;
+}) {
+  const isMobile = useIsMobile();
+
+  const [loadingSensor, setLoadingSensor] = useState<string | null>(null);
+
+  const handleClick = async (sensor: string) => {
+    setLoadingSensor(sensor);
+    try {
+      await onButtonClick(sensor);
+    } finally {
+      setLoadingSensor(null);
+    }
+  };
+
+  return (
+    <div
+      style={
+        isMobile
+          ? { display: "flex", flexDirection: "column", gap: "16px" }
+          : { display: "flex", marginBottom: 16 }
+      }
+    >
+      {sensors.map((sensor) => (
+        <Button
+          key={sensor}
+          variant="contained"
+          color="primary"
+          onClick={() => handleClick(sensor)}
+          disabled={loadingSensor === sensor}
+          style={{ marginRight: 8 }}
+        >
+          {`Trigger ${sensor}`}
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+export default SensorTriggerButtons;
+```
+
+The buttons are styled using Material-UI, and the component also handles loading states to provide feedback when a reading is being triggered. Ideally, this componenet should have an interface defined for its props, but I was being lazy - it's a personal project after all.
+
+### TemperatureGraph.tsx
+
+This component uses Recharts to display the temperature data in a line chart. It takes the readings and sensor names as props and renders a chart. The chart automatically re-renders when the data changes - which happens as a result of changing the date range in the DateRangePicker component.
+
+There was some serious funk in getting the data to display correctly in the chart. Recharts expects there to be a single array of objects, with each object containing the timestamp and the temperature readings for each sensor. This meant I had to transform the data received from the API into the correct format.
+
+The data comes from the API as a big JSON array with each entry looking like this:
+```JSON
+[
+  { sensor_name: "Upstairs", reading: { time: "2025-09-16 10:00", temperature: 21.5 } },
+  { sensor_name: "Downstairs", reading: { time: "2025-09-16 10:00", temperature: 20.1 } },
+  { sensor_name: "Upstairs", reading: { time: "2025-09-16 10:05", temperature: 21.6 } }
+}
+```
+
+The `useEffect` code in the Dashboard fetches the readings from the API whenever the start or end date changes. It also includes some basic validation to ensure the date range is valid. Once the data is fetched, it is stored in a state variable called `readings`.
+
+To get it into the right format for Recharts, we have to go through each entry, and for each unique timestamp, create an object that contains the timestamp and the temperature readings for each sensor. If a sensor doesn't have a reading for a particular timestamp, we set its value to `null`. This way, Recharts can handle the missing data gracefully, without gaps in the lines:
+
+```tsx
+const times = Array.from(
+  new Set((readings ?? []).map((r) => r.reading.time.replace(" ", "T")))
+);
+
+const mergedData: ChartEntry[] = times.map((time) => {
+  const entry: ChartEntry = { time };
+  sensors.forEach((sensor) => {
+    const found = readings.find(
+      (r) =>
+        r.sensor_name === sensor && r.reading.time.replace(" ", "T") === time
+    );
+    entry[sensor] = found ? found.reading.temperature : null;
+  });
+  return entry;
+});
+```
+
+This merged data can be passed into the Recharts component to render the chart:
+
+```tsx
+<ResponsiveContainer width="100%" height="100%">
+  <LineChart data={mergedData}>
+    <CartesianGrid stroke="#eee" />
+    <XAxis
+      dataKey="time"
+      tickFormatter={(t) => new Date(t).toLocaleTimeString()}
+    />
+    <YAxis />
+    <Tooltip />
+    <Legend />
+    <Line
+      type="monotone"
+      dataKey="Upstairs"
+      stroke="#1976d2"
+      strokeWidth={2}
+      dot={false}
+      connectNulls={true}
+    />
+    <Line
+      type="monotone"
+      dataKey="Downstairs"
+      strokeWidth={2}
+      dot={false}
+      stroke="#82ca9d"
+      connectNulls={true}
+    />
+  </LineChart>
+</ResponsiveContainer>
+```
+
+### DateRangePicker.tsx
+This component provides two date pickers for selecting the start and end dates. It uses Material-UI's `DatePicker` component and handles date validation to ensure the selected range is valid. I'll spare you the code for this one, it's pretty standard stuff.
+
+### CurrentTemperatures.tsx
+
+I said we would come back to the WebSocket endpoint. This component connects to the WebSocket endpoint to receive real-time updates of the current temperature readings. It uses the `useEffect` hook to establish the connection when the component mounts and cleans up when it unmounts.
+
+This works, but WebSockets really are a pain to work with. When they work they're great though!
+
+The component to show the temperatures is just a simple card layout with Material-UI. The WebSocket connection that fetches the data is the interesting bit:
+
+```tsx
+ useEffect(() => {
+    const ws = new WebSocket(`${WEBSOCKET_BASE}/ws/current-temperatures`);
+    ws.onmessage = (event) => {
+      if (!event.data || event.data === "null") return;
+      const arr = JSON.parse(event.data);
+      // Convert array to object keyed by sensor_name
+      const obj: { [key: string]: TemperatureReading } = {};
+      arr.forEach((reading: TemperatureReading) => {
+        obj[String(reading.sensor_name)] = reading;
+      });
+      setCurrentReadings(obj);
+    };
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err);
+    };
+    return () => ws.close();
+  }, []);
+```
+
+The React side is pretty simple, you make a new WebSocket, and define what to do when a message is received. In this case, we parse the JSON data and update the state with the latest readings.
+
+On the Go side, it is a little more complicated. The WebSocket endpoint is set up using the Gorilla WebSocket package. It listens for incoming connections and sends the latest temperature readings to the client every 5 seconds:
+
+```go
+func currentTemperaturesWebSocket(c *gin.Context) {
+
+  // Upgrade initial GET request to a websocket
+	var upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool { return true },
+	}
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		return
+	}
+
+  // Ensure connection is closed when function exits
+	defer conn.Close()
+
+  // Determine the interval for sending updates
+	interval := appProps.APPLICATION_PROPERTIES["current.temperature.websocket.interval"]
+	if interval == "" {
+		interval = "5" // Default to 5 seconds if not set
+	}
+	intervalDuration, err := time.ParseDuration(interval + "s")
+	if err != nil {
+		log.Printf("Invalid interval duration: %v, using default 5 seconds", err)
+		intervalDuration = 5 * time.Second // Default to 5 seconds
+	}
+
+  // Start a ticker to send updates at the specified interval
+	ticker := time.NewTicker(intervalDuration)
+	defer ticker.Stop()
+
+	// Channel to signal close - this is used to stop the main loop when the client disconnects
+	done := make(chan struct{})
+
+	// Goroutine to listen for client close, this prevents the server from trying to write to a closed connection
+  // If we don't do this, the server will keep posting to dead websockets long after the client has gone away
+  // A delay wouldn't hurt though, just in case the client is momentarily unreachable - TODO
+	go func() {
+		for {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				close(done)
+				return
+			}
+		}
+	}()
+
+  // Main loop to send updates
+  // This will run until the the close signal is received. It fetches the latest readings
+  // from the database and sends them to the client as JSON.
+	for {
+		select {
+		case <-ticker.C:
+			readings, err := database.GetLatestReadings()
+			if err != nil {
+				log.Printf("Error fetching latest readings: %v", err)
+				continue
+			}
+			if err := conn.WriteJSON(readings); err != nil {
+				log.Printf("WebSocket closed or error: %v", err)
+				return // Exit the handler when the connection is closed
+			}
+		case <-done:
+			log.Printf("WebSocket connection closed by client")
+			return
+		}
+	}
+}
+```
+
+## The result
+Here is a screenshot of the final result. My over-engineered home temperature monitoring system, complete with a React frontend and a Go backend.
+
+![Screenshot of the Sensor Hub dashboard showing current temperatures and a line chart of historical data](/blog-post-assets/sensor-hub-temperature-dashboard.png)
+
+There will be one final part to this series, where I will talk about the deployment of the system into Pi 5, and an optimisation that I had to make to the database to keep it performant.
+
+As always, the code for this project is available on [GitHub](https://github.com/tom-molotnikoff/home-temperature-monitoring). If you have any questions or suggestions, feel free to reach out!

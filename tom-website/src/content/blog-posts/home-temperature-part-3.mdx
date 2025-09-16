@@ -2,7 +2,7 @@
 title: "Home Temperature Monitoring: Part 3"
 date: "2025-09-10"
 description: "In Part 3, I work on the implementation of the sensor API and the backend service. Specifically, I focus on creating an API for the Raspberry Pi sensors to provide temperature readings and building a backend service in Go to collect and store this data in a MySQL database."
-tags: ["python", "raspberry-pi", "go", "mysql", "home-automation"]
+tags: ["python", "raspberry-pi", "go", "mysql", "home-automation", "polymorphism", "flask", "interfaces"]
 published: true
 ---
 
@@ -29,13 +29,11 @@ app = Flask(__name__)
 
 load_dotenv()
 
-TEMP_SENSOR_NAME = os.getenv("TEMP_SENSOR_NAME")
-
 @app.get("/temperature")
 def get_temperature():
     try:
-        sensor = DS18B20TempSensor(TEMP_SENSOR_NAME)
-        return jsonify(sensor.collect_data_with_name())
+        sensor = DS18B20TempSensor()
+        return jsonify(sensor.collect_data())
     except Exception as e:
         abort(500)
 
@@ -44,7 +42,7 @@ def internal_error(error):
     return {"message": "couldn't take a reading"},500
 ```
 
-As shown above, the API has a single endpoint `/temperature` that, when called, reads the temperature from the DS18B20 sensor and returns it in JSON format. If there's an error while reading the sensor, it returns a 500 status code with an appropriate message. There really isn't anything more that needs to be done here.
+As shown above, the API has a single endpoint `/temperature` that, when called, reads the temperature from the DS18B20 sensor and returns it in JSON format. If there's an error while reading the sensor, it returns a 500 status code with an appropriate message. There really isn't anything more that needs to be done here. The sensors are not named, that is the responsibility of the Sensor Hub service.
 
 Down the line, replacing this architecture with something like MQTT might be a good idea, but for now, this simple HTTP API will suffice. This is probably sending more data than is necessary, but it works.
 
@@ -56,49 +54,171 @@ The next step is to create a backend service that will periodically call the sen
 
 The http package in Go should be a good fit for requesting the temperature data from the sensor API. The database will come later, for now, I just need to get the data from the APIs to the service.
 
-Requesting the data from a sensor can be done like this:
+The backend needs to be made aware of the sensors it needs to collect data from. For this, I will use an openapi.yaml file to define the sensors. This file will be read by the backend service at startup to discover the sensors. Any config file would do, but I like the idea of using OpenAPI for this, as it provides a clear structure and can be easily extended in the future if needed.
+```yaml
+openapi: 3.1.0
+info:
+  title: Sensor API
+  description: The API for the sensors located around the home.
+  version: 0.0.1
 
-```go
-func take_readings() ([]*SensorReading, error) {
-	responses := make([]*SensorReading, 0)
-	for _, url := range sensorUrls {
-		readingUrl := url + "temperature"
-		resp, err := http.Get(readingUrl)
-		if err != nil {
-			log.Printf("Issue fetching temperature from a sensor: %s\n", err)
+servers:
+  - url: http://home.upstairs-pi:5000/
+    description: Raspberry Pi located in an upstairs room
+    variables:
+      sensor_name:
+        default: Upstairs
+        description: The name of the sensor. This isn't really ever changed.
+      sensor_type:
+        default: Temperature
+        description: The type of sensor. This isn't really ever changed.
+  - url: http://home.downstairs-pi:5000/
+    description: Raspberry Pi located in a downstairs room
+    variables:
+      sensor_name:
+        default: Downstairs
+        description: The name of the sensor. This isn't really ever changed.
+      sensor_type:
+        default: Temperature
+        description: The type of sensor. This isn't really ever changed.
+paths:
+...
+```
+
+The file above defines two sensors, each with a unique URL and a name. The backend service will read this file at startup to discover the sensors it needs to collect data from. 
+
+```go 
+func DiscoverSensors() error {
+	fileData, err := os.ReadFile(appProps.APPLICATION_PROPERTIES["openapi.yaml.location"])
+	if err != nil {
+		log.Printf("Cannot find the openapi.yaml file for the temperature sensors: %s\n", err)
+		return err
+	}
+	var servers types.SensorServers
+
+	err = yaml.Unmarshal(fileData, &servers)
+	if err != nil {
+		log.Printf("Cannot unmarshal the yaml into a map: %s\n", err)
+		return err
+	}
+	sensors = make([]ISensor, 0)
+
+	for _, value := range servers.Servers {
+		sensorName := value.Variables["sensor_name"].Default
+		url := value.Url
+		sensorType := value.Variables["sensor_type"].Default
+		switch sensorType {
+		case "Temperature":
+			sensors = append(sensors, NewTemperatureSensor(sensorName, url))
+		default:
+			log.Printf("Unknown sensor type %s for sensor %s, skipping...\n", sensorType, sensorName)
 			continue
 		}
-		defer resp.Body.Close()
-		response := new(SensorReading)
-		err = json.NewDecoder(resp.Body).Decode(response)
-
-		if err != nil {
-			log.Printf("Issue reading request body: %s\n", err)
-			continue
-		}
-
-		responses = append(responses, response)
 	}
-	err := add_list_of_readings(responses)
-	if err != nil {
-		log.Printf("Issue persisting readings to database: %s\n", err)
-		return nil, err
+	log.Printf("Discovered sensors:")
+	for _, sensor := range sensors {
+		log.Printf(" - %s\n", sensor.ToString())
 	}
-	err = sendAlertEmailIfNeeded(responses)
-	if err != nil {
-		log.Printf("Failed to send alerts: %s", err)
-	}
-	return responses, err
+	return nil
 }
 ```
 
-This function iterates over a list of sensor URLs, makes a GET request to each sensor's `/temperature` endpoint, and decodes the JSON response into a `SensorReading` struct. If any errors occur during the request or decoding process, they are logged, and the function continues to the next sensor - it isn't vital to ensure they are retried, the data isn't that essential. After collecting all readings, it calls `add_list_of_readings` to store them in the database and `sendAlertEmailIfNeeded` to check if any alerts need to be sent based on the readings.
+This function reads the yaml file, unmarshals it into a struct, and creates a list of sensors based on the information in the file. The sensors are stored in a global variable for later use.
+
+Requesting the data from a sensor can be done like this:
+
+```go
+// This function fetches the readings from all known sensors.
+// If at least one sensor provides readings successfully, it returns nil.
+// If no readings are successfully collected, it returns an error.
+var takeReadingsFromAllSensors = func() error {
+	if len(sensors) == 0 {
+		log.Println("No sensors discovered, cannot take readings.")
+		return fmt.Errorf("no sensors discovered")
+	}
+	count := 0
+	for _, sensor := range sensors {
+		log.Printf("Taking reading from sensor: %s\n", sensor.GetName())
+		err := sensor.TakeReading(true)
+		if err != nil {
+			log.Printf("Error taking reading from sensor %s: %s\n", sensor.GetName(), err)
+		}
+		count++
+	}
+	if count == 0 {
+		return fmt.Errorf("no readings collected from any sensors")
+	}
+	return nil
+}
+```
+
+This function iterates over all known sensors, calls their `TakeReading` method, and logs any errors encountered. If at least one reading is successfully collected, it returns nil; otherwise, it returns an error.
+
+The sensors are generic interfacecs that can represent any type of sensor. For now, I only have the `Temperature` sensors, but this design allows for easy extension in the future if I decide to add more sensor types. Go's interface system makes this kind of polymorphism straightforward.
+
+```go 
+type ISensor interface {
+	TakeReading(persist bool) error
+	ToString() string
+	GetName() string
+	GetURL() string
+}
+```
+
+The meat of the data collection is done in the implementation of the `TakeReading` method for each sensor type. For the temperature sensors, it looks like this:
+
+```go
+// TakeReading fetches the current temperature from the sensor's API,
+// updates the latestReading field, and optionally persists the reading to the database.
+// If persist is true, it also checks if an alert email needs to be sent based on the reading.
+func (ts *TemperatureSensor) TakeReading(persist bool) error {
+	if ts.name == "" || ts.url == "" {
+		return fmt.Errorf("sensor name or URL cannot be empty")
+	}
+	readingUrl := ts.url + "/temperature"
+	resp, err := http.Get(readingUrl)
+	if err != nil {
+		log.Printf("Issue fetching temperature from sensor %s: %s\n", ts.name, err)
+		return err
+	}
+	defer resp.Body.Close()
+	response := new(types.RawTemperatureReading)
+	err = json.NewDecoder(resp.Body).Decode(response)
+	if err != nil {
+		log.Printf("Issue reading request body from sensor %s: %s\n", ts.name, err)
+		return err
+	}
+	nameTaggedResponse := utils.ConvertRawSensorReadingToAPIReading(ts.name, *response)
+	log.Printf("Sensor %s reading: %v\n", ts.name, nameTaggedResponse)
+
+	ts.latestReading = nameTaggedResponse
+
+	// insert into database
+	if !persist {
+		return nil
+	}
+
+	readings := make([]types.APIReading, 0)
+	readings = append(readings, nameTaggedResponse)
+	err = database.AddListOfRawReadings(readings)
+	if err != nil {
+		log.Printf("Issue persisting readings to database: %s\n", err)
+		return nil
+	}
+	err = smtp.SendAlertEmailIfNeeded(readings)
+	if err != nil {
+		log.Printf("Failed to send alerts: %s", err)
+	}
+
+	return nil
+}
+```
 
 With the data collection in place, the next step is to set up a scheduler to call this function periodically. For this, I will use a bit of Go concurrency with a ticker to trigger the readings at regular intervals.
 
 ```go
-func startPeriodicSensorCollection() {
-	intervalStr := APPLICATION_PROPERTIES["sensor.collection.interval"]
+func StartPeriodicSensorCollection() {
+	intervalStr := appProps.APPLICATION_PROPERTIES["sensor.collection.interval"]
 	intervalSec, err := strconv.Atoi(intervalStr)
 	if err != nil {
 		log.Printf("Invalid sensor.collection.interval value: %s, defaulting to 60 seconds", intervalStr)
@@ -108,18 +228,17 @@ func startPeriodicSensorCollection() {
 		ticker := time.NewTicker(time.Duration(intervalSec) * time.Second)
 		defer ticker.Stop()
 		for {
-			_, err := take_readings()
+			err := takeReadingsFromAllSensors()
 			if err != nil {
-				log.Printf("Error taking readings: %s", err)
+				log.Printf("Error taking periodic readings from sensors: %s", err)
 			}
-
 			<-ticker.C
 		}
 	}()
 }
 ```
 
-This function reads the interval from the application properties, defaults to 60 seconds if the value is invalid, and starts a goroutine that uses a ticker to call `take_readings` at the specified interval.
+This function reads the interval from the application properties, defaults to 60 seconds if the value is invalid, and starts a goroutine that uses a ticker to collect readings from all sensors at the specified interval. 
 
 The backend service is now able to periodically collect temperature data. The next step is to set up the database to store the readings, then I can work on an API to service the frontend.
 
@@ -154,13 +273,14 @@ To do this in Go, using the `database/sql` package, it is really just a case of 
 DB.Exec(`CREATE INDEX idx_time ON temperature_readings (time DESC);`)
 ```
 
-To tie this together, the backend needs to have some functions for retrieving and storing the data in the database. To add the readings, I will create a function that takes a list of `SensorReading` structs and inserts them into the database.
+To tie this together, the backend needs to have some functions for retrieving and storing the data in the database. To add the readings, I will create a function that takes a list of `APIReading` structs and inserts them into the database.
 
 ```go
-func add_list_of_readings(readings []*SensorReading) error {
+func AddListOfRawReadings(readings []types.APIReading) error {
+	convertedDbReadings := utils.ConvertAPIReadingsToDbReadings(readings)
 	query := fmt.Sprintf("INSERT INTO %s (sensor_name, time, temperature) VALUES (?, ?, ?)", TableTemperatureReadings)
-	for _, reading := range readings {
-		_, err := DB.Exec(query, reading.SensorName, reading.Reading.Time, strconv.FormatFloat(reading.Reading.Temperature, 'f', -1, 64))
+	for _, reading := range convertedDbReadings {
+		_, err := DB.Exec(query, reading.SensorName, reading.Time, strconv.FormatFloat(reading.Temperature, 'f', -1, 64))
 		if err != nil {
 			return fmt.Errorf("issue persisting readings to database: %s", err)
 		}
@@ -175,8 +295,8 @@ For retrieving the data, I will create a function that takes a time range and re
 ```go
 // This function will fetch readings from the database between the specified start and end dates.
 // It will log the readings or any errors encountered during the process.
-func getReadingsBetweenDates(tableName string, startDate string, endDate string) (*[]APIReading, error) {
-	if tableName != TableTemperatureReadings && tableName != TableHourlyAverageTemperature {
+var GetReadingsBetweenDates = func(tableName string, startDate string, endDate string) ([]types.APIReading, error) {
+	if tableName != TableTemperatureReadings {
 		return nil, fmt.Errorf("invalid table name: %s", tableName)
 	}
 
@@ -187,9 +307,9 @@ func getReadingsBetweenDates(tableName string, startDate string, endDate string)
 		return nil, fmt.Errorf("error fetching readings between %s and %s: %w", startDate, endDate, err)
 	}
 	defer rows.Close()
-	var readings []Reading
+	var readings []types.DbReading
 	for rows.Next() {
-		var reading Reading
+		var reading types.DbReading
 
 		err := rows.Scan(&reading.Id, &reading.SensorName, &reading.Time, &reading.Temperature)
 		if err != nil {
@@ -202,27 +322,21 @@ func getReadingsBetweenDates(tableName string, startDate string, endDate string)
 		log.Printf("Error iterating over rows: %s", err)
 		return nil, fmt.Errorf("error iterating over rows: %s", err)
 	}
-	var apiReadings []APIReading
-	for _, r := range readings {
-		apiReadings = append(apiReadings, APIReading{
-			SensorName: r.SensorName,
-			Reading: struct {
-				Temperature float64 `json:"temperature"`
-				Time        string  `json:"time"`
-			}{
-				Temperature: math.Round(r.Temperature*10) / 10,
-				Time:        r.Time,
-			},
-		})
-	}
-	return &apiReadings, nil
+	apiReadings := utils.ConvertDbReadingsToApiReadings(readings)
+	return apiReadings, nil
 }
 ```
 
-This function constructs a SQL query to select readings from the specified table between the given start and end dates. It scans the results into a slice of `Reading` structs, then converts them into `APIReading` structs for easier consumption by the API. I should abstract that conversion out somewhere, but for now, this will do.
+There is some risky string formatting in the SQL query construction, but since the table name is validated against a constant, it should be safe. The start and end dates are passed as parameters to the query, which helps prevent SQL injection. I consume the tableName through the parameters to allow for extensibility of this function in the future.
+
+This function constructs a SQL query to select readings from the specified table within the given time range, executes the query, and scans the results into a slice of `APIReading` structs. 
+
+The function is named "var GetReadingsBetweenDates" to allow for easier mocking in tests. Go does not have a built-in mocking framework, so using function variables is a common pattern to facilitate testing.
 
 With the database functions in place, the backend service is now capable of storing and retrieving temperature data. The next step is to create an API for the frontend to access this data, which will be covered in the next part of this series.
 
 ## Summary
 
 In this part of the series, I implemented the sensor API on the Raspberry Pi to provide temperature readings and created a backend service in Go to periodically collect and store this data in a MySQL database. The backend service includes functions for adding and retrieving temperature readings, setting the stage for building a frontend to visualize the data. In the next part, I will focus on developing the API for the backend, and the frontend application to display the temperature data in a user-friendly manner.
+
+As always, the code for this project is available on [GitHub](https://github.com/tom-molotnikoff/home-temperature-monitoring). If you have any questions or suggestions, feel free to reach out!
