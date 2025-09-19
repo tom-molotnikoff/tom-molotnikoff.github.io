@@ -12,6 +12,7 @@ function SearchFilter() {
         setSearch(e.target.value);
       }}
       value={search}
+      data-testid="blog-search-input"
     />
   );
 }

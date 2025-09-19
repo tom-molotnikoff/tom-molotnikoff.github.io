@@ -16,15 +16,21 @@ function BlogIndexList() {
     <>
       {filteredPosts.map(({ name, frontmatter }) => (
         <Link to={`/blog/${name}`} key={name} className="w-full group">
-          <Card className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform">
+          <Card
+            className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform"
+            data-testid="blog-post-card"
+          >
             <CardHeader>
-              <CardTitle>
+              <CardTitle data-testid="blog-post-title">
                 <TypographyH3 className="group-hover:underline transition-all">
                   {frontmatter.title}
                 </TypographyH3>
               </CardTitle>
               <CardDescription>{frontmatter.date}</CardDescription>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardDescription
+                className="text-sm text-muted-foreground"
+                data-testid="blog-post-tags"
+              >
                 {frontmatter.tags?.join(", ")}
               </CardDescription>
             </CardHeader>

@@ -18,8 +18,11 @@ function DateFilter() {
   );
 
   return (
-    <Select onValueChange={setDate as (value: string) => void}>
-      <SelectTrigger className="w-[180px]">
+    <Select
+      onValueChange={setDate as (value: string) => void}
+      data-testid="blog-date-filter"
+    >
+      <SelectTrigger className="w-[180px]" data-testid="blog-date-filter">
         <SelectValue placeholder="Date" />
       </SelectTrigger>
       <SelectContent>

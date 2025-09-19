@@ -24,6 +24,7 @@ function RootNavigation() {
                 <NavLink
                   className="flex flex-1 flex-row items-center"
                   to={page.root_href}
+                  data-testid={`nav-${page.name.toLowerCase()}`}
                 >
                   <page.icon />
                   {page.print_name}

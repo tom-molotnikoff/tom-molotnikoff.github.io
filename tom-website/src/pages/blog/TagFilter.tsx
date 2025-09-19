@@ -15,7 +15,7 @@ function TagFilter() {
 
   return (
     <Select onValueChange={setTag as (value: string) => void}>
-      <SelectTrigger className="w-[180px]">
+      <SelectTrigger className="w-[180px]" data-testid="blog-tag-filter">
         <SelectValue placeholder="Tag" />
       </SelectTrigger>
       <SelectContent>
