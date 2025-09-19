@@ -8,6 +8,9 @@ import {
   Send,
   NotebookPen,
 } from "lucide-react";
+
+export const pageContainerClass = "flex flex-col items-center p-5 gap-y-10";
+
 // Define the layout of the pages. This is used in the router and the navbar.
 // The order matters.
 // The name must be unique, the href is used to route, the print_name is used in the navbar,

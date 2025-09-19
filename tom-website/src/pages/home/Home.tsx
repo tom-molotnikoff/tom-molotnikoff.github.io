@@ -1,12 +1,11 @@
 import Introduction from "@/pages/home/IntroductionText";
 import TextWithCatCarousel from "@/pages/home/TextWithCatCarousel";
-import { useIsMobile } from "@/hooks/use-mobile";
 import PageMetadata from "@/meta/PageMetadata";
+import ConnectWithMe from "../contact/ConnectWithMe";
+import { pageContainerClass } from "../Pages";
+import AboutThisSite from "./AboutThisSite";
 
 function Home() {
-  const isMobile = useIsMobile();
-  const desktopAdditionalPadding = isMobile ? "py-0" : "mt-10";
-
   return (
     <>
       <PageMetadata
@@ -17,14 +16,12 @@ function Home() {
         url="https://tom-molotnikoff.github.io/"
       />
 
-      <div
-        className={`pt-5 px-10 flex flex-col items-center min-h-screen gap-y-10 ${desktopAdditionalPadding}`}
-      >
-        <div className="w-full max-w-6xl">
+      <div className={pageContainerClass}>
+        <div className="w-full max-w-6xl gap-y-10 flex flex-col">
           <Introduction />
-        </div>
-        <div className="w-full max-w-6xl">
+          <AboutThisSite />
           <TextWithCatCarousel />
+          <ConnectWithMe />
         </div>
       </div>
     </>

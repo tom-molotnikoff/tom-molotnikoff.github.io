@@ -1,9 +1,15 @@
-import { TypographyH2 } from "@/components/typography";
+import { TypographyH2, TypographyMuted } from "@/components/typography";
 import JobHistory from "@/pages/experience/JobHistory";
 import LogoGrid from "@/pages/experience/LogoGrid";
 import PageMetadata from "@/meta/PageMetadata";
+import { pageContainerClass } from "../Pages";
+import ConnectWithMe from "../contact/ConnectWithMe";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 function Experience() {
+  const isMobile = useIsMobile();
+  const action = isMobile ? "Tap" : "Click";
+
   return (
     <>
       <PageMetadata
@@ -14,18 +20,25 @@ function Experience() {
         url="https://tom-molotnikoff.github.io/experience"
       />
 
-      <div className="flex flex-col items-center w-full gap-y-5 py-5 pl-5 pr-5">
-        <div className="flex flex-col items-center w-full gap-y-5 py-5 ">
+      <div className={pageContainerClass}>
+        <div className={cardWithTitleContainerClass}>
           <TypographyH2>Technologies I've Worked With</TypographyH2>
+          <TypographyMuted>
+            {action} each icon to view more info
+          </TypographyMuted>
           <LogoGrid />
         </div>
-        <div className="flex flex-col items-center w-full gap-y-5 py-5">
+        <div className={cardWithTitleContainerClass}>
           <TypographyH2>Roles I've Held</TypographyH2>
           <JobHistory />
         </div>
+        <ConnectWithMe />
       </div>
     </>
   );
 }
+
+const cardWithTitleContainerClass =
+  "flex flex-col items-center w-full gap-y-5 py-5 ";
 
 export default Experience;

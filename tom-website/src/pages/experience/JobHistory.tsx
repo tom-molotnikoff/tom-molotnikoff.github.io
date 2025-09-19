@@ -59,7 +59,7 @@ function JobHistory() {
 
   return (
     <div
-      className={`relative max-w-6xl ${
+      className={`max-w-6xl ${
         !isMobile ? "border-r-2 pr-4 border-l-2 border-muted-foreground/30" : ""
       } `}
     >
@@ -69,7 +69,6 @@ function JobHistory() {
           <div
             key={year}
             className={`flex items-start ${job ? "mb-10" : "mb-4"}`}
-            style={{ position: "relative" }}
           >
             <div
               className={`pt-1 text-right pr-4 ${

@@ -4,6 +4,7 @@ import { TypographyH4 } from "@/components/typography";
 import PageMetadata from "@/meta/PageMetadata";
 import BackToBlogLink from "./BackToBlogLink";
 import BlogContentCard from "./BlogContentCard";
+import ConnectWithMe from "../contact/ConnectWithMe";
 
 interface BlogPostPageParams {
   posts: BlogPost[];
@@ -40,6 +41,7 @@ function BlogPostPage({ posts }: BlogPostPageParams) {
             <BackToBlogLink />
           </div>
           <BlogContentCard post={post} />
+          <ConnectWithMe />
         </div>
       </div>
     </>

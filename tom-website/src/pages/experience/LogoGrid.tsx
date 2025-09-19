@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import {
-  TypographyH3,
-  TypographyMuted,
-  TypographySmall,
-} from "@/components/typography";
+import LogoPopover from "./LogoPopover";
+
+export type Logo = {
+  name: string;
+  file: string;
+  description: string;
+};
 
 function LogoGrid() {
-  const logos = [
+  const logos: Logo[] = [
     {
       name: "Active Directory",
       file: "active_directory.png",
@@ -204,35 +201,14 @@ function LogoGrid() {
     <div className="rounded-2xl shadow-lg p-3 w-full max-w-6xl">
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 py-8 ">
         {logos.map((logo, idx) => (
-          <div
+          <LogoPopover
             key={logo.name}
-            className={`  flex items-center justify-center transition-opacity duration-300 group ${
-              idx < visibleCount ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            <div className="flex items-center justify-center h-32 w-32 rounded-md transition-transform duration-200 group-hover:scale-110 group-hover:shadow-lg dark:bg-white/5">
-              <Popover
-                key={logo.name}
-                open={openIndex === idx}
-                onOpenChange={(open) => setOpenIndex(open ? idx : null)}
-              >
-                <PopoverTrigger asChild>
-                  <button className="flex flex-1 flex-col items-center  focus:outline-none">
-                    <img
-                      src={`/logos/${logo.file}`}
-                      alt={logo.name}
-                      className="p-2 h-23 w-23 object-contain "
-                    />
-                    <TypographyMuted>{logo.name}</TypographyMuted>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent>
-                  <TypographyH3>{logo.name}</TypographyH3>
-                  <TypographySmall>{logo.description}</TypographySmall>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
+            logo={logo}
+            idx={idx}
+            openIndex={openIndex}
+            setOpenIndex={setOpenIndex}
+            visibleCount={visibleCount}
+          />
         ))}
       </div>
     </div>
