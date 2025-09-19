@@ -1,7 +1,7 @@
-import Introduction from "@/content/introduction-text";
-import TextWithCatCarousel from "@/content/text-with-cat-carousel";
+import Introduction from "@/pages/home/IntroductionText";
+import TextWithCatCarousel from "@/pages/home/TextWithCatCarousel";
 import { useIsMobile } from "@/hooks/use-mobile";
-import PageMetadata from "@/meta/page-metadata";
+import PageMetadata from "@/meta/PageMetadata";
 
 function Home() {
   const isMobile = useIsMobile();

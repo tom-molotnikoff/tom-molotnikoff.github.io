@@ -1,5 +1,5 @@
-import ContactForm from "../../content/contact-form";
-import PageMetadata from "@/meta/page-metadata";
+import ContactForm from "./ContactForm";
+import PageMetadata from "@/meta/PageMetadata";
 
 function Contact() {
   return (

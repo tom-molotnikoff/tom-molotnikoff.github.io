@@ -1,7 +1,7 @@
 import { TypographyH2 } from "@/components/typography";
-import JobHistory from "@/content/job-history";
-import LogoGrid from "@/content/logo-grid";
-import PageMetadata from "@/meta/page-metadata";
+import JobHistory from "@/pages/experience/JobHistory";
+import LogoGrid from "@/pages/experience/LogoGrid";
+import PageMetadata from "@/meta/PageMetadata";
 
 function Experience() {
   return (
