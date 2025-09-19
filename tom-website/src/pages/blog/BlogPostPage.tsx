@@ -1,9 +1,9 @@
 import { Link, useParams } from "react-router";
 import type { BlogPost } from "./Blog";
 import { MDXProvider } from "@mdx-js/react";
-import { mdxComponents } from "./mdx-components";
+import { mdxComponents } from "../../types/mdx-components";
 import { TypographyH4 } from "@/components/typography";
-import { Helmet } from "@dr.pogodin/react-helmet";
+import PageMetadata from "@/meta/page-metadata";
 
 interface BlogPostPageParams {
   posts: BlogPost[];
@@ -32,40 +32,14 @@ function BlogPostPage({ posts }: BlogPostPageParams) {
   const { frontmatter, Content } = post;
   return (
     <>
-      <Helmet>
-        <title>{frontmatter.title} | Tom Molotnikoff's Personal Website</title>
-        <meta name="description" content={frontmatter.description} />
-        <meta
-          name="keywords"
-          content={`Tom Molotnikoff, blog, ${frontmatter.tags?.join(", ")}`}
-        />
-        <meta name="author" content="Tom Molotnikoff" />
-        <meta
-          property="og:title"
-          content={`${frontmatter.title} | Tom Molotnikoff's Personal Website`}
-        />
-        <meta property="og:description" content={frontmatter.description} />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:url"
-          content="https://tom-molotnikoff.github.io/blog"
-        />
-        <meta
-          property="og:image"
-          content="https://tom-molotnikoff.github.io/og-image.png"
-        />
+      <PageMetadata
+        title={`${frontmatter.title} | Tom Molotnikoff's Personal Website`}
+        description={frontmatter.description}
+        keywords={`Tom Molotnikoff, blog, ${frontmatter.tags?.join(", ")}`}
+        author="Tom Molotnikoff"
+        url="https://tom-molotnikoff.github.io/blog"
+      />
 
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content={`${frontmatter.title} | Tom Molotnikoff's Personal Website`}
-        />
-        <meta name="twitter:description" content={frontmatter.description} />
-        <meta
-          name="twitter:image"
-          content="https://tom-molotnikoff.github.io/og-image.png"
-        />
-      </Helmet>
       <div className="flex flex-1 justify-center">
         <div className="flex flex-1 justify-center flex-col items-center lg:max-w-5xl ml-3 mr-3 md:mr-10 md:ml-10 mt-10 mb-10 md:min-w-2xl lg:min-w-3/5">
           <div className="flex flex-1 items-start w-full mb-4">

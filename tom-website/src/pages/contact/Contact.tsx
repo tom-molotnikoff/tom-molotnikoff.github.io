@@ -1,45 +1,17 @@
-import { Helmet } from "@dr.pogodin/react-helmet";
-import ContactForm from "./ContactForm";
+import ContactForm from "../../content/contact-form";
+import PageMetadata from "@/meta/page-metadata";
 
 function Contact() {
   return (
     <>
-      <Helmet>
-        <title>Contact | Tom Molotnikoff's Personal Website</title>
-        <meta
-          name="description"
-          content="Get in touch with Tom Molotnikoff, a software developer and distributed computing enthusiast. Reach out for collaborations, enquiries, or just to connect."
-        />
-        <meta name="keywords" content="Tom Molotnikoff, contact" />
-        <meta name="author" content="Tom Molotnikoff" />
-        <meta
-          property="og:title"
-          content="Contact | Tom Molotnikoff's Personal Website"
-        />
-        <meta
-          property="og:description"
-          content="Get in touch with Tom Molotnikoff, a software developer and distributed computing enthusiast. Reach out for collaborations, enquiries, or just to connect."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://tom-molotnikoff.github.io/" />
-        <meta
-          property="og:image"
-          content="https://tom-molotnikoff.github.io/og-image.png"
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content="Contact | Tom Molotnikoff's Personal Website"
-        />
-        <meta
-          name="twitter:description"
-          content="Get in touch with Tom Molotnikoff, a software developer and distributed computing enthusiast. Reach out for collaborations, enquiries, or just to connect."
-        />
-        <meta
-          name="twitter:image"
-          content="https://tom-molotnikoff.github.io/og-image.png"
-        />
-      </Helmet>
+      <PageMetadata
+        title="Contact | Tom Molotnikoff's Personal Website"
+        description="Get in touch with Tom Molotnikoff, a software developer and distributed computing enthusiast. Reach out for collaborations, enquiries, or just to connect."
+        keywords="Tom Molotnikoff, contact"
+        author="Tom Molotnikoff"
+        url="https://tom-molotnikoff.github.io/contact"
+      />
+
       <div className="mt-10 flex-col flex flex-1 justify-center items-center ml-3 mr-3 md:ml-10 md:mr-10 ">
         <ContactForm />
         <div className="mt-8 mb-10">

@@ -1,7 +1,7 @@
 import Introduction from "@/content/introduction-text";
 import TextWithCatCarousel from "@/content/text-with-cat-carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Helmet } from "@dr.pogodin/react-helmet";
+import PageMetadata from "@/meta/page-metadata";
 
 function Home() {
   const isMobile = useIsMobile();
@@ -9,48 +9,14 @@ function Home() {
 
   return (
     <>
-      <Helmet>
-        <title>
-          Tom Molotnikoff | Software Developer & Distributed Computing
-          Enthusiast
-        </title>
-        <meta
-          name="description"
-          content="Welcome to my personal website! I'm Tom Molotnikoff, a software developer and tester. Check out my latest projects, read my blog, and feel free to get in touch."
-        />
-        <meta
-          name="keywords"
-          content="Tom Molotnikoff, software developer, distributed computing, cloud computing, user acceptance testing, Cirata, Sheffield, Hadoop, AWS, Azure, Google Cloud, Databricks, Snowflake, programming, personal website"
-        />
-        <meta name="author" content="Tom Molotnikoff" />
-        <meta
-          property="og:title"
-          content="Tom Molotnikoff | Software Developer & Distributed Computing Enthusiast"
-        />
-        <meta
-          property="og:description"
-          content="Explore Tom Molotnikoff's work in distributed computing, cloud automation, and software testing. View projects, read the blog, and connect."
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://tom-molotnikoff.github.io/" />
-        <meta
-          property="og:image"
-          content="https://tom-molotnikoff.github.io/og-image.png"
-        />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content="Tom Molotnikoff | Software Developer & Distributed Computing Enthusiast"
-        />
-        <meta
-          name="twitter:description"
-          content="Explore Tom Molotnikoff's work in distributed computing, cloud automation, and software testing. View projects, read the blog, and connect."
-        />
-        <meta
-          name="twitter:image"
-          content="https://tom-molotnikoff.github.io/og-image.png"
-        />
-      </Helmet>
+      <PageMetadata
+        title="Home | Tom Molotnikoff's Personal Website"
+        description="Welcome to my personal website! I'm Tom Molotnikoff, a software developer and tester. Check out my latest projects, read my blog, and feel free to get in touch."
+        keywords="Tom Molotnikoff, software developer, distributed computing, cloud computing, user acceptance testing, Cirata, Sheffield, Hadoop, AWS, Azure, Google Cloud, Databricks, Snowflake, programming, personal website"
+        author="Tom Molotnikoff"
+        url="https://tom-molotnikoff.github.io/"
+      />
+
       <div
         className={`pt-5 px-10 flex flex-col items-center min-h-screen gap-y-10 ${desktopAdditionalPadding}`}
       >

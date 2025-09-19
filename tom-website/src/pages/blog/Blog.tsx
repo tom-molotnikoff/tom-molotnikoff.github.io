@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router";
 import BlogPostPage from "./BlogPostPage";
-import BlogIndex from "./BlogIndex";
+import BlogIndex from "./BlogIndexPage";
 
 const mdxFiles = import.meta.glob("../../content/blog-posts/*.mdx", {
   eager: true,
