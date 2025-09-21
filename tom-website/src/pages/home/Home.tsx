@@ -2,7 +2,7 @@ import Introduction from "@/pages/home/IntroductionText";
 import TextWithCatCarousel from "@/pages/home/TextWithCatCarousel";
 import PageMetadata from "@/meta/PageMetadata";
 import ConnectWithMe from "../contact/ConnectWithMe";
-import { pageContainerClass } from "../Pages";
+import { GetPageStyle } from "../Pages";
 import AboutThisSite from "./AboutThisSite";
 
 function Home() {
@@ -16,7 +16,7 @@ function Home() {
         url="https://tom-molotnikoff.github.io/"
       />
 
-      <div className={pageContainerClass}>
+      <div className={GetPageStyle()}>
         <div className="w-full max-w-6xl gap-y-10 flex flex-col">
           <Introduction />
           <AboutThisSite />

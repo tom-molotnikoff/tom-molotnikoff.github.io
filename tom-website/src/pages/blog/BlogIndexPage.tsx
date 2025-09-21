@@ -8,7 +8,7 @@ import DateFilter from "./DateFilter";
 import SearchFilter from "./SearchFilter";
 import BlogIndexList from "./BlogIndexList";
 import ConnectWithMe from "../contact/ConnectWithMe";
-import { pageContainerClass } from "../Pages";
+import { GetPageStyle } from "../Pages";
 
 interface BlogIndexPageParams {
   posts: BlogPost[];
@@ -27,7 +27,7 @@ function BlogIndex({ posts }: BlogIndexPageParams) {
         url="https://tom-molotnikoff.github.io/blog"
       />
       <BlogFilterProvider initialPosts={posts}>
-        <div className={pageContainerClass}>
+        <div className={GetPageStyle()}>
           <div className={blogIndexListContainerClass}>
             <TypographyH2>Blog Posts</TypographyH2>
             <div

@@ -2,7 +2,7 @@ import { TypographyH2, TypographyMuted } from "@/components/typography";
 import JobHistory from "@/pages/experience/JobHistory";
 import LogoGrid from "@/pages/experience/LogoGrid";
 import PageMetadata from "@/meta/PageMetadata";
-import { pageContainerClass } from "../Pages";
+import { GetPageStyle } from "../Pages";
 import ConnectWithMe from "../contact/ConnectWithMe";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -20,7 +20,7 @@ function Experience() {
         url="https://tom-molotnikoff.github.io/experience"
       />
 
-      <div className={pageContainerClass}>
+      <div className={GetPageStyle()}>
         <div className={cardWithTitleContainerClass}>
           <TypographyH2>Technologies I've Worked With</TypographyH2>
           <TypographyMuted>
