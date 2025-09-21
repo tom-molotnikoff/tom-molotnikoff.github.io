@@ -10,7 +10,7 @@ function IntroductionText() {
   const isMobile = useIsMobile();
 
   return (
-    <div className={isMobile ? "flex flex-col" : "flex"}>
+    <div className={isMobile ? "flex flex-col text-center" : "flex"}>
       <div className="flex flex-col max-w-2xl mx-auto">
         <TypographyH1>Hi, I'm Tom!</TypographyH1>
         <TypographyH2>

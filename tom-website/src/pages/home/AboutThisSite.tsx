@@ -9,13 +9,13 @@ import { Link } from "react-router";
 function AboutThisSite() {
   const isMobile = useIsMobile();
   return (
-    <div className={isMobile ? "flex flex-col" : "flex"}>
+    <div className={isMobile ? "flex flex-col text-center" : "flex"}>
       <div className="flex flex-col max-w-2xl mx-auto">
         <TypographyH1>What's here?</TypographyH1>
         <TypographyH2>A bit about me, my projects and a blog</TypographyH2>
       </div>
       <div className="flex flex-col max-w-2xl mx-auto">
-        <ul className="list-disc pl-5 space-y-3">
+        <ul className={`pl-5 space-y-3 ${isMobile ? "" : "list-disc"}`}>
           <li>
             <TypographyP>
               Find out more about my experience in software development and
