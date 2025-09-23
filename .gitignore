@@ -8,5 +8,4 @@ dist
 .env
 .env.local
 .env.*.local
-
 website-planning.txt

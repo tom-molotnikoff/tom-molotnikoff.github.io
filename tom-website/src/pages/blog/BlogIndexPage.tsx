@@ -8,15 +8,25 @@ import DateFilter from "./DateFilter";
 import SearchFilter from "./SearchFilter";
 import BlogIndexList from "./BlogIndexList";
 import ConnectWithMe from "../contact/ConnectWithMe";
-import { GetPageStyle } from "../Pages";
+import PageContainer from "../PageContainer";
 
 interface BlogIndexPageParams {
   posts: BlogPost[];
 }
 
-function BlogIndex({ posts }: BlogIndexPageParams) {
+function SearchAndFilterContainer({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
+  const searchAndFilterContainerClass = "flex flex-1 flex-col w-full gap-y-3";
+  const searchAndFilterContainerClassDesktop = "flex flex-1 gap-4";
+  const className = isMobile
+    ? searchAndFilterContainerClass
+    : searchAndFilterContainerClassDesktop;
+  return <div className={className}>{children}</div>;
+}
 
+function BlogIndex({ posts }: BlogIndexPageParams) {
+  const blogIndexListContainerClass =
+    "w-full min-w-[320px] max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto flex flex-col items-start gap-y-10 ml-3 mr-3 md:ml-10 md:mr-10";
   return (
     <>
       <PageMetadata
@@ -27,43 +37,26 @@ function BlogIndex({ posts }: BlogIndexPageParams) {
         url="https://tom-molotnikoff.github.io/blog"
       />
       <BlogFilterProvider initialPosts={posts}>
-        <div className={GetPageStyle()}>
+        <PageContainer>
           <div className={blogIndexListContainerClass}>
             <TypographyH2>Blog Posts</TypographyH2>
-            <div
-              className={
-                isMobile
-                  ? searchAndFilterContainerClass
-                  : searchAndFilterContainerClassDesktop
-              }
-            >
+            <SearchAndFilterContainer>
               <TypographyH3>Search:</TypographyH3>
               <SearchFilter />
-            </div>
+            </SearchAndFilterContainer>
 
-            <div
-              className={
-                isMobile
-                  ? searchAndFilterContainerClass
-                  : searchAndFilterContainerClassDesktop
-              }
-            >
+            <SearchAndFilterContainer>
               <TypographyH3>Filters:</TypographyH3>
               <TagFilter />
               <DateFilter />
-            </div>
+            </SearchAndFilterContainer>
             <BlogIndexList />
           </div>
           <ConnectWithMe />
-        </div>
+        </PageContainer>
       </BlogFilterProvider>
     </>
   );
 }
-
-const searchAndFilterContainerClass = "flex flex-1 flex-col w-full gap-y-3";
-const searchAndFilterContainerClassDesktop = "flex flex-1 gap-4";
-const blogIndexListContainerClass =
-  "w-full min-w-[320px] max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto flex flex-col items-start gap-y-10 ml-3 mr-3 md:ml-10 md:mr-10";
 
 export default BlogIndex;

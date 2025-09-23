@@ -8,19 +8,6 @@ import {
   Send,
   NotebookPen,
 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-
-export const mobilePageContainerClass =
-  "flex flex-col items-center p-5 gap-y-10";
-export const pageContainerClass = mobilePageContainerClass + " pt-10";
-
-export function GetPageStyle() {
-  const isMobile = useIsMobile();
-  if (isMobile) {
-    return mobilePageContainerClass;
-  }
-  return pageContainerClass;
-}
 
 // Define the layout of the pages. This is used in the router and the navbar.
 // The order matters.

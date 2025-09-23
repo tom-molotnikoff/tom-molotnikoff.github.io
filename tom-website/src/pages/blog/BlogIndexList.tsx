@@ -1,44 +1,13 @@
-import { Link } from "react-router";
 import { useBlogFilter } from "./BlogFilterProvider";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { TypographyH3, TypographyP } from "@/components/typography";
+import BlogIndexCard from "./BlogIndexCard";
 
 function BlogIndexList() {
   const { filteredPosts } = useBlogFilter();
 
   return (
     <>
-      {filteredPosts.map(({ name, frontmatter }) => (
-        <Link to={`/blog/${name}`} key={name} className="w-full group">
-          <Card
-            className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform"
-            data-testid="blog-post-card"
-          >
-            <CardHeader>
-              <CardTitle data-testid="blog-post-title">
-                <TypographyH3 className="group-hover:underline transition-all">
-                  {frontmatter.title}
-                </TypographyH3>
-              </CardTitle>
-              <CardDescription>{frontmatter.date}</CardDescription>
-              <CardDescription
-                className="text-sm text-muted-foreground"
-                data-testid="blog-post-tags"
-              >
-                {frontmatter.tags?.join(", ")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TypographyP>{frontmatter.description}</TypographyP>
-            </CardContent>
-          </Card>
-        </Link>
+      {filteredPosts.map((post) => (
+        <BlogIndexCard key={post.name} post={post} />
       ))}
     </>
   );

@@ -1,4 +1,4 @@
-import { GetPageStyle } from "../Pages";
+import PageContainer from "../PageContainer";
 import ConnectWithMe from "./ConnectWithMe";
 import ContactForm from "./ContactForm";
 import PageMetadata from "@/meta/PageMetadata";
@@ -14,10 +14,10 @@ function Contact() {
         url="https://tom-molotnikoff.github.io/contact"
       />
 
-      <div className={GetPageStyle()}>
+      <PageContainer>
         <ContactForm />
         <ConnectWithMe />
-      </div>
+      </PageContainer>
     </>
   );
 }
