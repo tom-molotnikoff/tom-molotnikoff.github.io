@@ -211,9 +211,9 @@
 .glass {
   overflow: hidden;
   inset: 0;
-  background: color-mix(in oklch, var(--color-card), transparent 95%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: color-mix(in oklch, var(--color-card), transparent 90%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 20px;
   position: relative;
   z-index: 0;
