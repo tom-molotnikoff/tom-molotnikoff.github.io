@@ -145,7 +145,7 @@
     bottom: 0;
     width: 100%;
     pointer-events: none;
-    height: 500%;
+    height: 800%;
   }
 
   &::before {
@@ -168,7 +168,18 @@
     filter: blur(6px);
     opacity: 0.7;
     z-index: -2;
-    /*animation: rainbow-move 15s linear infinite;*/
+    animation: rainbow-move 15s linear infinite,
+      force-repaint 1s linear infinite;
+  }
+}
+
+/* this is purely just to force safari to render the animations, sigh */
+@keyframes force-repaint {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.99;
   }
 }
 
