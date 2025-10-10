@@ -58,57 +58,61 @@ function ContactForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex-1 w-full flex flex-col space-y-8 max-w-3xl bg-card p-8 rounded-lg shadow-lg"
+        className="flex-1 w-full flex flex-col space-y-8 max-w-3xl rounded-lg rainbow-border"
       >
-        <TypographyH2>Contact Me</TypographyH2>
-        <p className="text-muted-foreground">
-          Feel free to reach out for enquiries, or just to say hello!
-        </p>
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Jane Doe" {...field} />
-              </FormControl>
-              <FormDescription>
-                Your full name if you don't mind sharing.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="jane.doe@example.com" {...field} />
-              </FormControl>
-              <FormDescription>Your email address for a reply.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Message</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Type your message..." {...field} />
-              </FormControl>
-              <FormDescription>What would you like to say?</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Submit</Button>
+        <div className="rainbow-inner flex flex-col space-y-8 w-full p-8 rounded-2xl">
+          <TypographyH2>Contact Me</TypographyH2>
+          <p className="text-muted-foreground">
+            Feel free to reach out for enquiries, or just to say hello!
+          </p>
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Jane Doe" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Your full name if you don't mind sharing.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="jane.doe@example.com" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Your email address for a reply.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="message"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Message</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Type your message..." {...field} />
+                </FormControl>
+                <FormDescription>What would you like to say?</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit">Submit</Button>
+        </div>
       </form>
     </Form>
   );

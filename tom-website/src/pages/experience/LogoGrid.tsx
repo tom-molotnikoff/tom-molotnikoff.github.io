@@ -198,8 +198,8 @@ function LogoGrid() {
   }, [visibleCount, logos.length]);
 
   return (
-    <div className="rounded-2xl shadow-lg p-3 w-full max-w-6xl">
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 py-8 ">
+    <div className="rainbow-border w-full max-w-6xl rounded-2xl">
+      <div className="rainbow-inner grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-6 py-8 rounded-2xl p-3">
         {logos.map((logo, idx) => (
           <LogoPopover
             key={logo.name}

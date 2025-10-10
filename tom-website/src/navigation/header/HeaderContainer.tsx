@@ -6,7 +6,7 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 function HeaderContainer() {
   return (
     <div className="rainbow-border-bottom sticky top-0 left-0 w-full z-50 ">
-      <div className="rainbow-inner-bottom">
+      <div className="rainbow-inner">
         <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex gap-x-5 flex-shrink-0">

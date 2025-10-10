@@ -18,7 +18,7 @@ function BlogIndexCard({ post }: BlogIndexCardProps) {
   return (
     <Link to={`/blog/${name}`} className="w-full group">
       <Card
-        className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform"
+        className="w-full bg-card hover:shadow-lg hover:bg-muted/90 hover:scale-[1.01] transition-transform glass"
         data-testid="blog-post-card"
       >
         <CardHeader>

@@ -17,7 +17,7 @@ function HeaderWithSidebar() {
             isMobile ? "min-w-screen" : ""
           }`}
         >
-          <div className="rainbow-inner-bottom">
+          <div className="rainbow-inner">
             <div className="px-5">
               <div className="flex items-center justify-between space-x-5 h-16">
                 {/* Left side: Logo */}
