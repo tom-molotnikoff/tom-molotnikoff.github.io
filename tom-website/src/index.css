@@ -155,9 +155,9 @@
       red
     );
     pointer-events: none;
-    height: 2000%;
+    height: 500%;
     z-index: -1;
-    animation: rainbow-move 15s linear infinite;
+    /*animation: rainbow-move 15s linear infinite;*/
     filter: blur(6px);
     opacity: 0.7;
   }
@@ -198,7 +198,7 @@
     pointer-events: none;
     height: 100%;
     z-index: -1;
-    animation: rainbow-move 15s linear infinite;
+    /*animation: rainbow-move 15s linear infinite;*/
     filter: blur(6px);
     opacity: 0.7;
   }
@@ -206,6 +206,12 @@
 
 .rainbow-inner {
   background: var(--background, canvas);
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+  .glass {
+    background: color-mix(in oklch, var(--color-card), transparent 80%);
+  }
 }
 
 .glass {
