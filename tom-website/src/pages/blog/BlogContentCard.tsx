@@ -9,8 +9,8 @@ interface BlogContentCardProps {
 function BlogContentCard({ post }: BlogContentCardProps) {
   const { frontmatter, Content } = post;
   return (
-    <div className={`${blogPostTextContainerClass}`}>
-      <div className="rainbow-inner p-6 rounded-xl">
+    <div className={`${blogPostTextContainerOuterClass}`}>
+      <div className={`${blogPostTextContainerInnerClass}`}>
         <h1 className={`${blogPostTitleClass}`}>{frontmatter.title}</h1>
         <p className={`${blogPostDateClass}`}>{frontmatter.date}</p>
         <MDXProvider components={mdxComponents}>
@@ -21,8 +21,9 @@ function BlogContentCard({ post }: BlogContentCardProps) {
   );
 }
 
-const blogPostTextContainerClass =
-  "mdx-content rounded-xl shadow-lg space-y-4 rainbow-border";
+const blogPostTextContainerOuterClass = "mdx-content rounded-xl rainbow-border";
+const blogPostTextContainerInnerClass =
+  "rainbow-inner p-6 rounded-xl space-y-4";
 const blogPostTitleClass = "text-3xl font-bold mb-2";
 const blogPostDateClass = "text-muted-foreground mb-4";
 
