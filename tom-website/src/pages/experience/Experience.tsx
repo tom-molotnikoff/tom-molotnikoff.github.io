@@ -38,7 +38,6 @@ function Experience() {
   );
 }
 
-const cardWithTitleContainerClass =
-  "flex flex-col items-center w-full gap-y-5 py-5 ";
+const cardWithTitleContainerClass = "flex flex-col items-center w-full gap-y-5";
 
 export default Experience;
