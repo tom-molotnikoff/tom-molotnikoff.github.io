@@ -127,3 +127,42 @@
     @apply bg-background text-foreground;
   }
 }
+
+@property --angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 90deg;
+}
+
+.rainbow-border-bottom {
+  /* optional: remove padding if not needed */
+  background: none; /* background on the pseudo-element instead */
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background: conic-gradient(from var(--angle), red, orange, yellow, green, blue, indigo, violet, red);
+    pointer-events: none;
+    height: 2000%;
+    z-index: -1;
+    animation: rainbow-move 15s linear infinite;
+    filter: blur(6px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes rainbow-move {
+  0% {
+    --angle: 0deg;
+  }
+  100% {
+    --angle: 360deg;
+  }
+}
+
+.rainbow-inner-bottom {
+  background: var(--background, canvas);
+}
