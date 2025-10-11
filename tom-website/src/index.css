@@ -304,16 +304,15 @@ body::before {
   inset: 0;
   border-radius: inherit;
   padding: 2px;
-  background: conic-gradient(
-    from var(--angle, 0deg),
+  background: linear-gradient(
+    to right,
     red,
     orange,
     yellow,
     green,
     blue,
     indigo,
-    violet,
-    red
+    violet
   );
   -webkit-mask: linear-gradient(to bottom, transparent 98%, #fff 98% 100%);
   mask: linear-gradient(to bottom, transparent 98%, #fff 98% 100%);
