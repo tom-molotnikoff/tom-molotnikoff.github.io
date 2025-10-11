@@ -131,6 +131,7 @@ body {
   position: relative;
 }
 
+
 body::before {
   content: "";
   position: fixed;
@@ -144,6 +145,20 @@ body::before {
   background-repeat: no-repeat;
   background-attachment: fixed; 
   pointer-events: none;
+}
+
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  body::before {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-attachment: scroll;
+    background-image: url("/light-bg-mob-2.png");
+  }
+  .dark body::before {
+    background-image: url("/dark-bg-mob.jpg");
+  }
 }
 
 .dark body::before {
