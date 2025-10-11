@@ -6,7 +6,7 @@ function SearchFilter() {
 
   return (
     <Input
-      className="w-[180px]"
+      className="w-[280px]"
       placeholder="Search posts..."
       onChange={(e) => {
         setSearch(e.target.value);

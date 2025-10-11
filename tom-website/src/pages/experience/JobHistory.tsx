@@ -60,7 +60,9 @@ function JobHistory() {
   return (
     <div
       className={`max-w-6xl ${
-        !isMobile ? "border-r-2 pr-4 border-l-2 border-muted-foreground/30" : ""
+        !isMobile
+          ? "border-r-2 pr-4 border-l-2 border-muted-foreground/30 glass p-3"
+          : "glass p-3"
       } `}
     >
       {years.map((year, _) => {

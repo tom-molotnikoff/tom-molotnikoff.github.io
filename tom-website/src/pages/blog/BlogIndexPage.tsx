@@ -21,6 +21,7 @@ function SearchAndFilterContainer({ children }: { children: React.ReactNode }) {
   const className = isMobile
     ? searchAndFilterContainerClass
     : searchAndFilterContainerClassDesktop;
+
   return <div className={className}>{children}</div>;
 }
 
@@ -40,16 +41,18 @@ function BlogIndex({ posts }: BlogIndexPageParams) {
         <PageContainer>
           <div className={blogIndexListContainerClass}>
             <TypographyH2>Blog Posts</TypographyH2>
-            <SearchAndFilterContainer>
-              <TypographyH3>Search:</TypographyH3>
-              <SearchFilter />
-            </SearchAndFilterContainer>
+            <div className="glass p-3 flex flex-1 flex-col gap-y-5 h-full">
+              <SearchAndFilterContainer>
+                <TypographyH3>Search:</TypographyH3>
+                <SearchFilter />
+              </SearchAndFilterContainer>
 
-            <SearchAndFilterContainer>
-              <TypographyH3>Filters:</TypographyH3>
-              <TagFilter />
-              <DateFilter />
-            </SearchAndFilterContainer>
+              <SearchAndFilterContainer>
+                <TypographyH3>Filters:</TypographyH3>
+                <TagFilter />
+                <DateFilter />
+              </SearchAndFilterContainer>
+            </div>
             <BlogIndexList />
           </div>
           <ConnectWithMe />

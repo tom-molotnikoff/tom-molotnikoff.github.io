@@ -17,23 +17,27 @@ function TextWithCatCarousel() {
 
   if (isMobile) {
     return (
-      <div className="flex-1 flex flex-col items-center text-center">
-        <TypographyH1>{title}</TypographyH1>
-        <TypographyH2>{names}</TypographyH2>
-        <ImageCarousel
-          interval={3000}
-          images={catImages9by16}
-          opacity={1}
-          aspectRatio="9/16"
-        />
-        <TypographyMuted>{description}</TypographyMuted>
+      <div className="flex flex-1 flex-col gap-y-4">
+        <div className="flex-1 flex flex-col items-center text-center gap-y-4 glass p-4 max-w-2xl w-full mx-auto">
+          <TypographyH1>{title}</TypographyH1>
+          <TypographyH2>{names}</TypographyH2>
+          <TypographyMuted>{description}</TypographyMuted>
+        </div>
+        <div className="flex-1 flex justify-center">
+          <ImageCarousel
+            interval={3000}
+            images={catImages9by16}
+            opacity={1}
+            aspectRatio="9/16"
+          />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-1 items-center justify-center gap-5">
-      <div className="flex flex-1 flex-col justify-center items-start text-left">
+      <div className="flex flex-1 flex-col justify-center items-start text-left glass p-4">
         <TypographyH1>{title}</TypographyH1>
         <TypographyH2>{names}</TypographyH2>
         <TypographyMuted>{description}</TypographyMuted>

@@ -4,6 +4,7 @@ import PageMetadata from "@/meta/PageMetadata";
 import ConnectWithMe from "../contact/ConnectWithMe";
 import AboutThisSite from "./AboutThisSite";
 import PageContainer from "../PageContainer";
+import HeroRotatingWords from "./HeroRotatingWords";
 
 function Home() {
   return (
@@ -18,6 +19,7 @@ function Home() {
 
       <PageContainer>
         <div className="w-full max-w-6xl gap-y-10 flex flex-col">
+          <HeroRotatingWords />
           <Introduction />
           <AboutThisSite />
           <TextWithCatCarousel />

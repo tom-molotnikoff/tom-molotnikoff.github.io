@@ -58,9 +58,9 @@ function ContactForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex-1 w-full flex flex-col space-y-8 max-w-3xl rounded-lg rainbow-border"
+        className="flex-1 w-full flex flex-col space-y-8 max-w-3xl rounded-lg"
       >
-        <div className="rainbow-inner flex flex-col space-y-8 w-full p-8 rounded-2xl">
+        <div className="glass flex flex-col space-y-8 w-full p-8 rounded-2xl">
           <TypographyH2>Contact Me</TypographyH2>
           <p className="text-muted-foreground">
             Feel free to reach out for enquiries, or just to say hello!

@@ -10,14 +10,18 @@ function IntroductionText() {
   const isMobile = useIsMobile();
 
   return (
-    <div className={isMobile ? "flex flex-col text-center" : "flex"}>
-      <div className="flex flex-col max-w-2xl mx-auto">
+    <div
+      className={
+        isMobile ? "flex flex-col text-center gap-y-5" : "flex gap-x-10"
+      }
+    >
+      <div className="flex flex-col flex-1/2 max-w-2xl mx-auto glass p-4">
         <TypographyH1>Hi, I'm Tom!</TypographyH1>
         <TypographyH2>
           Computer Scientist • Distributed Computing Enthusiast
         </TypographyH2>
       </div>
-      <div className="flex flex-col max-w-2xl mx-auto space-y-4">
+      <div className="flex flex-col flex-1/2 max-w-2xl mx-auto space-y-4 glass p-4">
         <TypographyP>
           I'm passionate about programming and software development, with a
           particular interest in cloud & distributed computing. Currently, I

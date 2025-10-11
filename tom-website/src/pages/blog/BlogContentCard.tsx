@@ -21,9 +21,8 @@ function BlogContentCard({ post }: BlogContentCardProps) {
   );
 }
 
-const blogPostTextContainerOuterClass = "mdx-content rounded-xl rainbow-border";
-const blogPostTextContainerInnerClass =
-  "rainbow-inner p-6 rounded-xl space-y-4";
+const blogPostTextContainerOuterClass = "mdx-content rounded-xl";
+const blogPostTextContainerInnerClass = "glass p-6 rounded-xl space-y-4";
 const blogPostTitleClass = "text-3xl font-bold mb-2";
 const blogPostDateClass = "text-muted-foreground mb-4";
 

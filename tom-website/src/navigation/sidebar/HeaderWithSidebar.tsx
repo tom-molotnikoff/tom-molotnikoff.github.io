@@ -13,11 +13,11 @@ function HeaderWithSidebar() {
       <SidebarImpl />
       <main>
         <div
-          className={`sticky top-0 left-0 z-50 rainbow-border-bottom ${
+          className={`sticky top-0 left-0 z-50 ${
             isMobile ? "min-w-screen" : ""
           }`}
         >
-          <div className="rainbow-inner">
+          <div className="glass-bottom-border-only">
             <div className="px-5">
               <div className="flex items-center justify-between space-x-5 h-16">
                 {/* Left side: Logo */}

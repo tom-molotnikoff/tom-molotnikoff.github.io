@@ -59,7 +59,7 @@ function LogoPopover({
 }
 
 const logoCardClass =
-  "logo-img-bg flex items-center justify-center h-32 w-32 rounded-md transition-transform duration-200 group-hover:scale-110 group-hover:shadow-lg dark:bg-white/5";
+  "logo-img-bg flex items-center justify-center h-32 w-32 rounded-md transition-transform duration-200 scale-up-fancy-on-hover-larger group-hover:shadow-lg dark:bg-white/5";
 const logoImageClass = "p-1 h-23 w-23 object-contain logo-img";
 const centeredContainerClass = "flex flex-1 flex-col items-center text-center";
 
