@@ -1,0 +1,234 @@
+---
+title: "Home Temperature Monitoring: Part 5"
+date: "2025-10-12"
+description: "This is the last part of the series, where I will go through the deployment of the application to a Raspberry Pi with containerization using Docker Compose."
+tags: ["raspberry-pi", "home-automation", "iot", "docker", "mysql", "docker-compose"]
+published: true
+---
+
+import { Link } from "react-router";
+
+# Deploying the new solution
+
+This is the last part of the series, where I will go through the deployment of the application to a Raspberry Pi with containerization using Docker Compose. The previous parts of the series can be found here:
+
+1. <Link to="/blog/home-temperature-part-1" className="underline">Home Temperature Monitoring: Part 1</Link>
+2. <Link to="/blog/home-temperature-part-2" className="underline">Home Temperature Monitoring: Part 2</Link>
+3. <Link to="/blog/home-temperature-part-3" className="underline">Home Temperature Monitoring: Part 3</Link>
+4. <Link to="/blog/home-temperature-part-4" className="underline">Home Temperature Monitoring: Part 4</Link>
+
+## Why use containers?
+
+In my work, I often spin up lots of different virtual machines and use various linux distributions across them. So often, there are cases where I do something on my machine and it works, but when I document the steps and recommend it to someone else, it doesn't work for them. Subtle differences in the environment, or mistakes in the documentation can lead to wasting time troubleshooting issues that could have been avoided. 
+
+The other reason comes to the difference between imperative and declarative infrastructure. When I set up a VM and install a bunch of software on it, I am imperatively building the environment step-by-step. This means that if I want to recreate the environment, I have to follow the same steps again, and if I miss a step or do something in a different order, I might end up with a different result. Declarative infrastructure is where you define the desired state of the environment, and a tool takes care of making sure that the environment matches that state. This is where containers come in.
+
+Containers allow you to package an application and its dependencies into a single unit that can be run across different environments. This means that if I build a container on my machine, I can be confident that it will run the same way on another machine.
+
+## Writing Dockerfiles
+
+The first step in containerizing the application is to write Dockerfiles for each component. Dockerfiles are effectively scripts that define how to build a container image. Each component of the application (backend, frontend and database) will have its own Dockerfile. 
+
+The general structure of a Dockerfile is as follows:
+
+```Dockerfile
+# Use an official base image
+FROM <base-image>
+
+# Set environment variables
+ENV <key>=<value>
+
+# Install dependencies and set up the environment
+RUN <commands>
+# Copy application code into the container
+COPY <source> <destination>
+
+# Expose ports
+EXPOSE <port>
+
+# Define the command to run the application
+CMD ["<command>"]
+```
+
+Broadly, you take a starting state, then perform a set of actions and define how to run the application. Once this dockerfile has been written, you can build a container image using the `docker build` command, which can then be stored in a container registry or run directly on a machine. The image can be repeatedly run on any machine that has Docker installed, it will work the same way each time.
+
+All these dockerfiles are relatively simple, as they are all based on existing images. The backend is based on the official Go image, the frontend is based on the official Node image, and the database is based on the official MySQL image. Only the backend and frontend require custom dockerfiles, the MySQL image is used as-is.
+
+### Backend Dockerfile
+
+```Dockerfile
+FROM golang:1.25-alpine
+
+WORKDIR /app
+
+COPY ./go.mod ./go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN rm ./configuration/database.properties
+
+RUN mkdir -p ../temperature_sensor
+
+COPY docker/openapi.yaml ../temperature_sensor/openapi.yaml
+COPY docker/write-db-properties-and-wait.sh /app/
+RUN chmod +x /app/write-db-properties-and-wait.sh
+
+RUN go build -o sensor-hub .
+
+ENTRYPOINT ["/app/write-db-properties-and-wait.sh"]
+CMD ["./sensor-hub"]
+```
+
+The backend image starts from the official Go image, as the backend is written in Go. We load the go.mod and go.sum files into the container and use `go mod download` to fetch the dependencies that are set out in the go.mod file. 
+
+The runtime application has a few configuration dependencies that need to be set up. The database connection properties are stored in a file called `database.properties`, which is read by the application at startup. This file is not included in the source code, as it contains sensitive information. Instead, a script called `write-db-properties-and-wait.sh` is copied into the container, which will write the database properties to the file when the container starts. The script also waits for the database to be available before starting the application.
+
+The OpenAPI spec file is copied to the container too, this is used by the backend to find all the sensors that it should be collecting data from.
+
+Finally, the application is built using `go build`, and the entrypoint and command are set to run the script that waits for MySQL and starts the application.
+
+### Frontend Dockerfile
+
+```Dockerfile
+FROM node:20 AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+ARG VITE_API_BASE=http://localhost:8080
+ARG VITE_WEBSOCKET_BASE=ws://localhost:8080
+ENV VITE_API_BASE=$VITE_API_BASE
+ENV VITE_WEBSOCKET_BASE=$VITE_WEBSOCKET_BASE
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+The frontend image uses the Node image to build the application. The source code is copied into the container and the dependencies are installed using `npm install`. The application is then built using `npm run build`. Since the result of the build is static files, Nginx is used to serve these over HTTP. The built files are copied from the build stage into the Nginx image, and Nginx is configured to serve them.
+
+There are a couple of configurable environment variables that the frontend uses to know where to find the backend API. These are set using build arguments, which are passed to the build command when building the image. I would do this differently if I were storing this image in a registry, as I would want to be able to configure these at runtime rather than build time. However, for this project, it is sufficient.
+
+### Docker Compose
+
+With the Dockerfiles written, the next step is to define how the containers will work together using Docker Compose. Docker Compose is a tool that allows you to define and run multi-container Docker applications. The configuration is defined in a `docker-compose.yml` file.
+
+```yaml
+ervices:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      # - mysql-data:/var/lib/mysql
+      - /home/pi/mysql-data:/var/lib/mysql
+  sensor-hub:
+    build:
+      context: ..
+      dockerfile: docker/sensor-hub.dockerfile
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: password
+
+  sensor-hub-ui:
+    build:
+      context: ../ui/sensor_hub_ui
+      dockerfile: sensor-hub-ui.dockerfile
+      args:
+        VITE_API_BASE: "http://sensor-hub:8080"
+        VITE_WEBSOCKET_BASE: "ws://sensor-hub:8080"
+    ports:
+      - "3000:80" # 3000 on host, 80 in container (nginx)
+    depends_on:
+      - sensor-hub
+```
+
+The `docker-compose.yml` file defines three services: `mysql`, `sensor-hub` (the backend) and `sensor-hub-ui` (the frontend). Each service is configured with its own set of environment variables, build context, and ports. The `depends_on` directive is used to specify the dependencies between services, ensuring that they are started in the correct order, though this doesn't wait for the service to be ready, just started. 
+
+With everything defined, this can be run using the `docker-compose up -d` command, which will build the images and start the containers together. This can be run with a command, or set up to run on boot using a systemd service:
+
+```ini
+[Unit]
+Description=Sensor Hub Docker Compose
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/path/to/your/compose/folder
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target
+```
+
+This service can be enabled using `systemctl enable sensor-hub`, and will start the containers on boot.
+
+## Last minute optimisation
+
+I let the application run for a couple of weeks to collect a bunch of data. It works well and is very reliable. The only thing I noticed was that the frontend graphing can be a bit laggy when there are more than a few days of 5 minute interval data. The list of readings passed between the front and backend is a big JSON array, which can be quite large when there's a few days of data. To solve this, I added a new endpoint to the backend that returns aggregated data. The endpoint takes the same parameters as the existing readings endpoint, but instead of returning all the readings, it returns the average readings for each hour. This reduces the amount of data that needs to be sent to the frontend, and makes the graphing much smoother.
+
+To do this, I set up an event in the MySQL database that runs every hour and calculates the average temperature for each sensor for the past hour, storing it in a new table. I'm sure there's SQL folks that could do this in a cleaner way, but this does the job for me:
+
+```MySQL
+CREATE EVENT IF NOT EXISTS hourly_average_temperature_event
+ON SCHEDULE EVERY 1 HOUR
+STARTS TIMESTAMP(CURRENT_DATE, SEC_TO_TIME((HOUR(NOW())+1)*3600 + 60))
+DO
+  INSERT INTO hourly_avg_temperature (sensor_name, time, average_temperature)
+  SELECT
+      tr.sensor_name,
+      DATE_FORMAT(tr.time, '%Y-%m-%d %H:00:00') AS hour,
+      ROUND(AVG(tr.temperature), 2) AS avg_temp
+  FROM temperature_readings tr
+  WHERE tr.time >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 HOUR), '%Y-%m-%d %H:00:00')
+    AND tr.time < DATE_FORMAT(NOW(), '%Y-%m-%d %H:00:00')
+  GROUP BY tr.sensor_name, hour
+  HAVING NOT EXISTS (
+      SELECT 1
+      FROM hourly_avg_temperature hat
+      WHERE hat.sensor_name = tr.sensor_name
+        AND hat.time = hour
+  );
+```
+
+To serve this data to the frontend, I added a new endpoint to the Gin API in the backend:
+
+```Go
+router.GET("/readings/hourly/between", getHourlyReadingsBetweenDatesHandler)
+```
+
+And the frontend was updated to have a toggle that switches between raw and aggregated data:
+
+```TypeScript
+if (useHourlyAverages) {
+  response = await fetch(
+    `${API_BASE}/readings/hourly/between?start=${startDate.toISODate()}&end=${endDate.toISODate()}`
+  );
+} else {
+  response = await fetch(
+    `${API_BASE}/readings/between?start=${startDate.toISODate()}&end=${endDate.toISODate()}`
+  );
+}
+```
+
+This has made a big difference to the performance of the frontend, and the graphing is now very smooth even with a lot of data.
+
+## Conclusion
+
+I now have some numbers to back me up when I say I'm cold. Is the outcome worth the effort? No. But, it was good fun to build, and it has some similarities with small scale IoT projects in general. The blueprint structure of having sensors, some central aggregation and processing, with a user interface to view analytics of the data is a common pattern. Containerization makes the whole thing more reliable and easier to manage. To scale this up to a larger project, you would likely want to look at using MQTT or AMQP for the sensor communication - it's low powered and designed for this type of thing. You would also want to look at using a Message Queue for the backend to handle the incoming data from the sensors, this would avoid risks from bursts of data overwhelming the aggregation service. Finally, you want to use a better database for this type of data, either a time-series database, or a NoSQL database like MongoDB or Redis. Maybe I'll come back to this project and make these improvements incrementally - who knows.
+
+Thanks for reading 🙃
+
