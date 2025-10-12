@@ -114,7 +114,6 @@
   background-image: url("/dark-bg.jpg");
 }
 
-
 /* https://github.com/radix-ui/primitives/issues/1496
 stops the scrollbar from shifting the page when using radix selects.
 
@@ -131,7 +130,6 @@ body {
   position: relative;
 }
 
-
 body::before {
   content: "";
   position: fixed;
@@ -143,10 +141,9 @@ body::before {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed; 
+  background-attachment: fixed;
   pointer-events: none;
 }
-
 
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
   body::before {
@@ -376,6 +373,13 @@ body::before {
 }
 .scale-up-fancy-on-hover-larger:hover {
   transform: scale(1.1);
+}
+
+.scale-up-fancy-on-hover-xl {
+  transition: transform 0.3s cubic-bezier(0.175, 1, 0.3, 1.6);
+}
+.scale-up-fancy-on-hover-xl:hover {
+  transform: scale(1.2);
 }
 
 .tracking-in-contract {

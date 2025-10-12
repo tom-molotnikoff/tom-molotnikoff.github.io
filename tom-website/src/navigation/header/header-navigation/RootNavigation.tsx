@@ -19,7 +19,10 @@ function RootNavigation() {
             name: string;
             icon: React.ComponentType;
           }) => (
-            <NavigationMenuItem key={page.name}>
+            <NavigationMenuItem
+              className="scale-up-fancy-on-hover-xl"
+              key={page.name}
+            >
               <NavigationMenuLink asChild>
                 <NavLink
                   className="flex flex-1 flex-row items-center"
@@ -33,7 +36,7 @@ function RootNavigation() {
             </NavigationMenuItem>
           )
         )}
-        <NavigationMenuItem>
+        <NavigationMenuItem className="scale-up-fancy-on-hover-xl">
           <NavigationMenuLink asChild>
             <a
               className="flex flex-1 flex-row items-center"
