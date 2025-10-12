@@ -31,7 +31,7 @@ The first step in containerizing the application is to write Dockerfiles for eac
 
 The general structure of a Dockerfile is as follows:
 
-```Dockerfile
+```dockerfile
 # Use an official base image
 FROM <base-image>
 
@@ -56,7 +56,7 @@ All these dockerfiles are relatively simple, as they are all based on existing i
 
 ### Backend Dockerfile
 
-```Dockerfile
+```dockerfile
 FROM golang:1.25-alpine
 
 WORKDIR /app
@@ -90,7 +90,7 @@ Finally, the application is built using `go build`, and the entrypoint and comma
 
 ### Frontend Dockerfile
 
-```Dockerfile
+```dockerfile
 FROM node:20 AS build
 WORKDIR /app
 COPY package*.json ./
@@ -117,7 +117,7 @@ There are a couple of configurable environment variables that the frontend uses 
 With the Dockerfiles written, the next step is to define how the containers will work together using Docker Compose. Docker Compose is a tool that allows you to define and run multi-container Docker applications. The configuration is defined in a `docker-compose.yml` file.
 
 ```yaml
-ervices:
+services:
   mysql:
     image: mysql:8
     environment:
@@ -182,7 +182,7 @@ I let the application run for a couple of weeks to collect a bunch of data. It w
 
 To do this, I set up an event in the MySQL database that runs every hour and calculates the average temperature for each sensor for the past hour, storing it in a new table. I'm sure there's SQL folks that could do this in a cleaner way, but this does the job for me:
 
-```MySQL
+```sql
 CREATE EVENT IF NOT EXISTS hourly_average_temperature_event
 ON SCHEDULE EVERY 1 HOUR
 STARTS TIMESTAMP(CURRENT_DATE, SEC_TO_TIME((HOUR(NOW())+1)*3600 + 60))
@@ -206,13 +206,13 @@ DO
 
 To serve this data to the frontend, I added a new endpoint to the Gin API in the backend:
 
-```Go
+```go
 router.GET("/readings/hourly/between", getHourlyReadingsBetweenDatesHandler)
 ```
 
 And the frontend was updated to have a toggle that switches between raw and aggregated data:
 
-```TypeScript
+```tsx
 if (useHourlyAverages) {
   response = await fetch(
     `${API_BASE}/readings/hourly/between?start=${startDate.toISODate()}&end=${endDate.toISODate()}`

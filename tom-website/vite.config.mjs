@@ -6,6 +6,14 @@ import mdx from "@mdx-js/rollup";
 import remarkMdxFrontmatter from "remark-mdx-frontmatter";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
+import rehypePrettyCode from "rehype-pretty-code";
+
+/** @type {import('rehype-pretty-code').Options} */
+const options = {
+  theme: "dracula",
+  keepBackground: false,
+  defaultLang: "plaintext",
+};
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -19,6 +27,7 @@ export default defineConfig({
           remarkGfm, // support for github flavored markdown (tables, task lists, strikethrough, etc)
           [remarkMdxFrontmatter, { name: "frontmatter" }], // exposes it as an export
         ],
+        rehypePlugins: [[rehypePrettyCode, options]],
       }),
     },
     react({ include: /\.(jsx|js|mdx|md|tsx|ts)$/ }),

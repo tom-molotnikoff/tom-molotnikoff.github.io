@@ -201,12 +201,12 @@ This component uses Recharts to display the temperature data in a line chart. It
 There was some serious funk in getting the data to display correctly in the chart. Recharts expects there to be a single array of objects, with each object containing the timestamp and the temperature readings for each sensor. This meant I had to transform the data received from the API into the correct format.
 
 The data comes from the API as a big JSON array with each entry looking like this:
-```JSON
+```json
 [
   { sensor_name: "Upstairs", reading: { time: "2025-09-16 10:00", temperature: 21.5 } },
   { sensor_name: "Downstairs", reading: { time: "2025-09-16 10:00", temperature: 20.1 } },
   { sensor_name: "Upstairs", reading: { time: "2025-09-16 10:05", temperature: 21.6 } }
-}
+]
 ```
 
 The `useEffect` code in the Dashboard fetches the readings from the API whenever the start or end date changes. It also includes some basic validation to ensure the date range is valid. Once the data is fetched, it is stored in a state variable called `readings`.
