@@ -41,6 +41,8 @@ function RootNavigation() {
             <a
               className="flex flex-1 flex-row items-center"
               href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/issues"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <Bug />
               Report an issue

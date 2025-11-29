@@ -57,7 +57,11 @@ function SidebarImpl() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/issues">
+                  <a
+                    href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/issues"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Bug />
                     Report an issue
                   </a>
@@ -65,7 +69,11 @@ function SidebarImpl() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/fork">
+                  <a
+                    href="https://github.com/tom-molotnikoff/tom-molotnikoff.github.io/fork"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <GitFork />
                     Fork this repo
                   </a>

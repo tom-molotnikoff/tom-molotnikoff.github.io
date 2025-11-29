@@ -2,7 +2,7 @@ import { TypographyH4 } from "@/components/typography";
 
 function ConnectWithMe() {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center glass p-3">
       <TypographyH4>Connect with me on social media</TypographyH4>
 
       <div className="flex flex-row gap-4 mt-4">

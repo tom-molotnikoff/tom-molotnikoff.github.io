@@ -23,8 +23,8 @@ function Home() {
           <Introduction />
           <AboutThisSite />
           <TextWithCatCarousel />
-          <ConnectWithMe />
         </div>
+        <ConnectWithMe />
       </PageContainer>
     </>
   );
