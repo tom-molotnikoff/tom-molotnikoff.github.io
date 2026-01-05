@@ -1,0 +1,318 @@
+---
+title: "NixOS as a game server host - my experience"
+date: "2025-10-12"
+description: "Documenting my experience using NixOS to run a small ex-office machine for hosting dedicated game servers for my friends."
+tags: ["nixos", "home server", "game servers", "dedicated server"]
+published: true
+---
+
+# Using NixOS for running a home server
+
+## How it started
+
+This all began on Ebay, where I found an old Dell OptiPlex desktop PC at auction on a bank holiday weekend. It had an i5-6something CPU, 32GB of RAM, and a 256GB SSD - no GPU, not an issue here. Thanks to the bank holiday distracting people, I grabbed it for 60 quid, absolute steal.
+
+I had the server, now I needed a purpose. The simplest thing was just to run some game servers for my friends and I to play on. The first two games that had some interest at the time were Valheim and Minecraft.
+
+With a simple end goal in mind, now it was time to overcomplicate things and use NixOS as the operating system.
+
+## Why NixOS?
+
+NixOS is a Linux distro built around the Nix package manager. The main selling point is the declarative configuration model. You define everything you want in a set of dot nix files, and run a built to switch onto the new configuration. The setup is held in a source control system, with the idea being that you can replace the hardware, clone the repo and be back where you were.
+
+This appealed to me for a few reasons:
+- I like using Terraform, Ansible, and other declarative infrastructure tools at work, so the concept was familiar, but new to me in the context of a desktop OS.
+- I had zero faith in the ex-office SSD and PSU, so if this 60 quid machine died, I can replace the whole thing and be back up and running in a few hours (salt, salt, salt).
+
+## Setting up NixOS
+
+This is not a NixOS tutorial, there are plenty of those out there. The official docs are a great place to start: https://nixos.org/manual/nixos/stable/.
+
+The main things I did were:
+- Install NixOS onto the machine.
+- Set up SSH access so I could manage it remotely.
+- Configure Git to store my NixOS configuration files.
+- Enable Nix Flakes (https://nixos.wiki/wiki/Flakes) for better package management.
+- Enable Home-Manager.
+
+Nix Flakes and Home-Manager were mostly just because every other GitHub example I trawled through seemed to rely on them, so there was more reference material available if things didn't work first time - happened a lot.
+
+## The framework to develop the configuration
+
+The config is split into a few different files:
+- `configuration.nix`: The primary NixOS configuration file. This contains system settings, enabled services and system-wide packages.
+- `hardware-configuration.nix`: Auto-generated file that contains hardware-specific settings.
+- `flake.nix`: The Nix Flake files that acts as the entry point for the configuration. The builds happen from here outwards.
+- `tom-home.nix`: Home-Manager configuration file. The modules are loaded in through this file.
+- `modules/*.nix`: Custom NixOS modules for specific services, like the game servers.
+
+The rough hierarchy looks like this:
+
+```.
+├── flake.nix
+├─── configuration.nix
+├─── hardware-configuration.nix
+└─── tom-home.nix
+     └─── modules
+          ├── valheim-server.nix
+          ├── onedrive.nix
+          ├── minecraft-backup.nix
+          └── minecraft-server.nix
+```
+
+I've completely glossed over the details in this part, but this is where I spent most of my time in my initial 5-hour burst. Getting that file structure set up, as well as learning how to write Nix files, and getting the prequisite configuration in place was the hardest part.
+
+I want to skip over that part though, and look at how a declarative configuration works for running game servers.
+
+As an example, this is the `tom-home.nix` file that imports the modules:
+
+```
+{ config, pkgs, lib, ... }:
+let
+  minecraftBackupModule = import ./modules/minecraft-backup.nix {
+    inherit pkgs;
+    inherit config;
+  };
+
+  minecraftServerModule = import ./modules/minecraft-server.nix {
+    inherit pkgs;
+    inherit config;
+  };
+
+  valheimServerModule = import ./modules/valheim-server.nix {
+    inherit pkgs;
+    inherit config;
+  };
+
+  userConfiguration = {
+    home.username = "tom";
+    home.homeDirectory = "/home/tom";
+    systemd.user.enable = true;
+    home.stateVersion = "24.11";
+
+    programs.home-manager.enable = true;
+
+    programs.zsh.enable = true;
+
+    programs.git = {
+      enable = true;
+      settings.user.name  = "myusername";
+      settings.user.email = "myemail@gmail.com";
+    };
+
+    # SSH Configuration
+    programs.ssh = {
+      enable = true;
+      enableDefaultConfig = false;
+      matchBlocks = {
+        "github.com" = {
+          user = "myusername";
+          identityFile = "/home/tom/.ssh/github_nixos_server_z240";
+        };
+      };
+    };
+  };
+
+  allModules = [
+    userConfiguration
+    minecraftBackupModule
+    minecraftServerModule
+    valheimServerModule
+  ];
+
+  mergingFunction = a: c: lib.recursiveUpdate a c;
+in
+lib.foldl' mergingFunction {} allModules
+```
+
+## Setting up the game servers
+
+The game servers were set up as these custom NixOS modules in the `modules/` directory. Each module effectively just defined a systemd service to run the server, alongside any other nonsense that the application required to run properly.
+
+### Minecraft server
+
+This is super simple compared to Valheim. Minecraft servers are just a single Java JAR file (even when you use the Paper, Forge or Spigot flavours, it's just a JAR). The steps to getting this working on NixOS were:
+1. Add Java to the system packages.
+2. Create a systemd service to run the server JAR with the appropriate flags.
+3. Set up a firewall rule to allow traffic on the Minecraft port (25565 by default).
+
+The Java package is available in the NixOS package repository, so adding it to the system was just a case of including it in the `environment.systemPackages` list in `configuration.nix`.
+```
+environment.systemPackages = with pkgs; [
+    git
+    wget
+    jdk21_headless
+    unzip
+    zip
+  ];
+```
+
+The systemd service is a bit more involved, but broadly defining a systemd service is a mixture of two approaches: comparing to another service, and reading the systemd documentation. The Minecraft server service ended up looking like this:
+```
+{ config, pkgs, ... }:
+{
+  systemd.user.services.minecraft-server = {
+    Unit = {
+      Description = "Minecraft Dedicated Server";
+      After = [ "network-online.target" ];
+      Wants = [ "network-online.target" ];
+    };
+
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+
+    Service = {
+      WorkingDirectory = "/home/tom/Server/minecraft-servers/fabric-1.21.11-vanilla-base";
+      Type = "simple";
+      Restart = "on-failure";
+      RestartSec = 10;
+      RuntimeMaxSec = "2d";
+      ExecStart = "${pkgs.jdk21_headless}/bin/java -Xmx8G -XX:+UseG1GC -Dapp.name='MC Server' -Djava.net.preferIPv6Addresses=system -jar /home/tom/Server/minecraft-servers/fabric-1.21.11-vanilla-base/fabric-server-mc.1.21.11-loader.0.18.2-launcher.1.1.0.jar nogui";
+    };
+  };
+}
+```
+
+The part to note here is the use of `${pkgs.jdk21_headless}` instead of writing the path to the Java binary directly. This is because NixOS packages are stored in unique paths based on their hash, so until you build the configuration, you don't know what the path will be. Since we defined the presence of Java through the Nix package manager, we can reference it through the `pkgs` argument passed into the module (the first line).
+
+Finally, the firewall rule is just a case of adding the port to the `networking.firewall.allowedTCPPorts` list in `configuration.nix`:
+```
+networking.firewall.allowedTCPPorts = [ 25565 ];
+networking.firewall.allowedUDPPorts = [ 25565 ];
+```
+
+To run and enable the service, I just ran:
+```
+sudo nixos-rebuild switch --flake .
+```
+
+As an aside, I also set up a script that backs up the server to a OneDrive account every 6 hours. People love to trawl the internet and be their worst selves on Minecraft servers, so having a backup is a good idea. This was done through another custom module that has a systemd timer to run the backup script every 6 hours. The script uses Rsync to copy the server files to a local OneDrive synced folder, which is then synced to the cloud through the OneDrive client via INotify.
+
+### Valheim server
+
+Valheim is more complex than Minecraft to get going on NixOS. It requires Steam to be installed, the game files to be downloaded through SteamCMD, and then some script to launch the server with the right parameters.
+
+The steps here:
+1. Setting up SteamCMD on NixOS
+2. Getting the game files downloaded through SteamCMD to a known location
+3. Creating a launcher script that can be actually executed on NixOS
+4. Creating the systemd service to run the server
+
+Steam was added by adding the "steamcmd" package to the system packages in `configuration.nix`:
+```
+environment.systemPackages = with pkgs; [
+git
+wget
+jdk21_headless
+steamcmd
+steam-run
+unzip
+zip
+];
+```
+
+Steam-run is also needed. This is what we run the Valheim server binary through, as well as the whole script to launch the Server. I'll be honest, this part seems a bit like magic to me, but as I understand it, it seems to mimic the filesystem structure of a standard Steam installation, which is what the Valheim server binary expects. Apparently, it is also handy for running scripts?
+
+The game files can be downloaded through this command:
+```shell
+steamcmd +@sSteamCmdForcePlatformType linux +force_install_dir ~/Server/valheim-game-files/linux +login anonymous +app_update 896660 +quit
+```
+
+There were some kinks in getting the script that launches the server working. The official Valheim documentation provides a sample script, but it needed some tweaks to run properly on NixOS. The final version looked like this:
+```shell
+export SteamAppId=892970
+export LD_LIBRARY_PATH=/home/tom/Server/valheim-game-files/linux/linux64:$LD_LIBRARY_PATH
+/home/tom/Server/valheim-game-files/linux/valheim_server.x86_64 -nographics -batchmode -name '123' -password "123" -port 2456 -world '123' -public 0 -savedir /home/tom/Server/valheim-world-files
+```
+The key part here is setting the `LD_LIBRARY_PATH` to include the Valheim game-files directory. Without this, the server would fail to start. This took ages to work out, I'm sure it would be faster for someone more familiar with patching binaries to work with NixOS, but this was my first insight into things. Essentially, the binary shipped for the Valheim server needs to be modified to work with the dynamic libraries of NixOS, or you just run it as an explicitly unpatched binary: https://github.com/nix-community/nix-ld.
+
+As there's a port involved, that will need to be opened in the firewall. There is also a steam port to open as well:
+```
+networking.firewall.allowedTCPPorts = [ 2456 2457 2458 25565];
+networking.firewall.allowedUDPPorts = [ 2456 2457 2458 25565 ];
+```
+
+Finally, the systemd service can be defined:
+```
+{ config, pkgs, ... }:
+{
+  systemd.user.services.valheim = {
+    Unit = {
+      Description = "Valheim Dedicated Server";
+      After = [ "network-online.target" ];
+      Wants = [ "network-online.target" ];
+    };
+
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+
+    Service = {
+      Type = "simple";
+      Restart = "always";
+      RestartSec = 10;
+      RuntimeMaxSec = "1d";
+      ExecStart = "${pkgs.steam-run}/bin/steam-run /home/tom/Server/valheim-game-files/run-valheim.sh";
+    };
+  };
+}
+```
+
+Again, to set this off, just rebuild the NixOS configuration:
+```
+sudo nixos-rebuild switch --flake .
+```
+
+## Kinks, issues and thoughts
+
+### Auto sleep
+
+The first day I set this up, after 5 hours of fiddling, I proudly WhatsApp'd my brother and said its up and running, then went to the pub. Not 20 minutes after leaving the house, I got a message back saying the server had stopped working.
+
+Turns out, this was just some auto-sleep nonsense that I had forgotton to disable. This can be sledgehammered by adding this to `configuration.nix`:
+```
+systemd.targets.sleep.enable = false;
+systemd.targets.suspend.enable = false;
+systemd.targets.hibernate.enable = false;
+systemd.targets.hybrid-sleep.enable = false;
+```
+
+### It is complicated, and my ISP wants to make it harder
+
+There isn't any hiding from this part, be prepared for a steep learning curve. I spent a long time reading the NixOS docs, looking at examples on GitHub, and trying and failing to get things working. My experience was quite similar to programming in Haskell for the first time, when it works it is magical, but getting there can be painful.
+
+On top of this, my ISP's IP range seems to now be completely blacklisted from accessing the `nixos.wiki` site, meaning I have to use a VPN to access documentation:
+```
+Your ISP (and/or VPN provider) has been banned from nixos.wiki due to ongoing attacks originating from their IP space.
+
+To regain access to the wiki, you can:
+* Use another internet service provider.
+* Contact your ISP and urge them to take action that will result in a stop of the attacks.
+```
+
+Thanks, Virgin Media :)
+
+### Remembering what you did
+
+When you run a game server for your friends, you tend to spend your time in intermittent bursts. You set it up, get it working, then leave it for a month or two before you need to update it or change the game. With other Linux distributions, it is more likely that you have been working with similar setups in the interim, but that was not the case for NixOS with me. Each time I go back, I have to relearn how to write nix files, and I have to re-read the existing code to remember what I did last time.
+
+### Your friends don't care that it is more complicated
+
+What do I want? A fancy OS that lets me rip and replace the entire server if it dies; stateful configurations that can be version controlled; my Valheim server in GitHub!
+
+What do my friends want? To play Valheim and Minecraft **now**.
+
+Everything they want to happen, you will have to spend longer doing than on a traditional Linux distro, because of the NixOS learning curve and extra steps. For you, it is fun and interesting, but for them, it is 10 more minutes that they are waiting - and they will let you know about it. They also don't share your joy when it all works, to them this is a simple expectation of running a server (lots of people do it, why can't you?).
+
+### Finding a file setup that works for you is the trick to making it much simpler
+
+Everyone seems to have their own way of splitting out config files for Nix and importing them back in. I couldn't see an obvious right or wrong way. The one I settled on seems to work for me, and once I had it, things got so much easier. The single `configuration.nix` file works for about an hour, then you've outgrown it and hate it.
+
+Once I got the file structure sorted, it meant that most of the initial setup configuration was hidden away in the files I didn't need to look at often, and I could focus on what I needed to change. It was at this point that it became much easier to work with. I would recommend spending the time to get this sorted early on.
+
+## Conclusion
+
+A year on, and the server is still going strong. Updating NixOS is becoming a bit of a breeze now I have the hang of it, and adding new services is getting easier. I had fun, and I can see how declarative infrastructure like this could be useful for desktop environments, or even sharing configurations between multiple machines. The hardware all still works though, so I guess this wasn't really required.
+
+It was fun to learn, but realistically I would probably use a non-declarative Linux distro next time for something as simple as running game servers.
