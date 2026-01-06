@@ -6,6 +6,8 @@ tags: ["nixos", "home server", "game servers", "dedicated server"]
 published: true
 ---
 
+import { Link } from "react-router";
+
 # Using NixOS for running a home server
 
 ## How it started
@@ -298,3 +300,6 @@ Once I got the file structure sorted, it meant that most of the initial setup co
 A year on, and the server is still going strong. Updating NixOS is becoming a bit of a breeze now I have the hang of it, and adding new services is getting easier. I had fun, and I can see how declarative infrastructure like this could be useful for desktop environments, or even sharing configurations between multiple machines. The hardware all still works though, so I guess this wasn't really required.
 
 It was fun to learn, but realistically I would probably use a non-declarative Linux distro next time for something as simple as running game servers.
+
+**IMPORTANT NOTE**
+I have since resolved some of the vulnerabilities are present in this post, which I documented in <Link to="/blog/securing-the-home-server" className="underline">Securing the home server</Link>.
