@@ -1,0 +1,168 @@
+---
+title: "Reducing the Attack Surface of a Home Game Server with Podman"
+date: "2026-01-06"
+description: "Securing the game server using Podman to isolate applications from the host system."
+tags: ["nixos", "home server", "game servers", "dedicated server", "podman"]
+published: true
+---
+
+import { Link } from "react-router";
+
+# Securing my home server
+
+## Introduction
+
+In the <Link to="/blog/using-nixos-for-running-a-home-server" className="underline">previous post</Link>, I described my experience in setting up a home server to host a couple of games to play with friends. The process covers setting up a couple of Systemd services directly on the box which run the game exectuables. These executables can then be communicated with, over the internet (even if its through a VPN), by connecting to the ports that they are listening on.
+
+In recent history, there have been a number of vulnerabilities in popular games that have been exploited by attackers to perform Remote Code Execution (RCE) attacks (<Link to="https://www.minecraft.net/en-us/article/important-message--security-vulnerability-java-edition" className="underline">Minecraft's Log4j RCE</Link>, <Link to="https://www.kaspersky.com/blog/update-unity-games-cve-2025-59489/54542/" className="underline">Unity Startup Vulnerability</Link>). These vulnerabilities can allow an attacker to take control of the server running the game, running arbitrary code, and gaining whatever access the compromised executable has. This is concerning when running game servers on a home server, as it can potentially expose the entire home network to attackers.
+
+If the game executables run alongside the host operating system, it potentially exposes the SSH keys, the GitHub credentials, and access to other machines on the network. This is far from what I want, so I decided to look into ways to reduce the attack surface.
+
+Nothing is ever truly secure, but reducing the attack surface can help mitigate the risk of a successful attack.
+
+There are two techniques that I have used to reduce the risk associated with this server:
+1. Containerisation
+2. Backups
+
+## Containerisation
+
+One way to reduce the attack surface is to run the game servers in containers. Containers provide a way to isolate applications from the host system, limiting the potential damage that can be done if an application is compromised.
+
+By running the game servers in containers, I can limit their access to the host system, reducing the risk of an attacker gaining access to sensitive information or other machines on the network. In Podman, or Docker, the access to the host filesystem is controlled through something called Volumes. Volumes allow you to specify which paths of the host filesystem the container can see and write to. By only granting access to the necessary files and directories, I can limit the potential damage that can be done if the game server is compromised.
+
+NixOS has built-in support for Podman, and defining the containers is quite straightforward. Below is an example of how I defined the Minecraft server container in my NixOS configuration:
+
+```
+{ config, pkgs, ... }:
+{
+  virtualisation.podman.enable = true;
+
+  virtualisation.oci-containers.containers."minecraft-server" = {
+    image = "itzg/minecraft-server:stable-java21";
+    ports = [ "25565:25565" ];
+
+    user = "990:990";
+
+    volumes = [
+      "/var/lib/minecraft-worlds/world-files:/data:Z"
+    ];
+
+    environment = {
+      EULA = "TRUE";
+      TYPE = "FABRIC";
+      DIFFICULTY = "normal";
+      ALLOW_FLIGHT = "true";
+      SERVER_NAME = "Tom's Hosted Vanilla MC";
+      ONLINE_MODE = "true";
+      GUI = "false";
+      ENABLE_WHITELIST = "true";
+      OVERRIDE_WHITELIST = "true";
+      OPS = "usernames here";
+      WHITELIST = "usernames here";
+      SPAWN_PROTECTION = "0";
+      VERSION = "LATEST";
+      MEMORY = "8G";
+      LEVEL = "vanilla-world-tom-server";
+    };
+
+    extraOptions = [
+      "--cap-drop=ALL"
+      "--security-opt=no-new-privileges"
+      "--userns=keep-id"
+      "--no-healthcheck"
+    ];
+  };
+}
+```
+
+The above configuration defines a Podman container for the Minecraft server. The container is based on the `itzg/minecraft-server` image, which is (at the time of writing this) a very popular image for running Minecraft servers in containers. The container is configured to listen on port `25565`, which is the default port for Minecraft servers. The container is also configured to run as a non-root user (`1000:100`), which further limits the potential damage that can be done if the container is compromised.
+
+The container is also configured with a volume that maps the host directory `/var/lib/minecraft-worlds/world-files` to the container directory `/data`. This allows the Minecraft server to read and write world files to the host filesystem, while limiting its access to other parts of the host filesystem. This is the big benefit to the containerisation approach. If there happened to be another Log4j-like vulnerability in Java, and Minecraft was vulnerable, the attacker would only be able to access the files in `/var/lib/minecraft-worlds/world-files`, and nothing else on the host system.
+
+For Valheim, a similar approach can be used, with slightly different configuration to suit the usage of the Steam CMD package.
+
+## Backups
+
+In the case of the Minecraft Server, the world files are the place where the attacker could do the most damage if the application was compromised. This is probably the only part my friends would care about, not whether my online identity was stolen.
+
+To mitigate this, a simple systemd service can be put together to grab the files from the world files location every 6 hours or so, storing them in somewhere that is backed up outside the machine.
+
+```
+{ config, pkgs, ... }:
+let
+  serverDir = "/var/lib/minecraft-worlds";
+  backupBaseDir = "place-to-back-up-to";
+  fullBackupDir = "${backupBaseDir}/world-files.backup";
+  minecraft-backup-script = pkgs.writeShellScriptBin "minecraft-simple-backup" ''
+    #!/bin/sh
+
+    ECHO="${pkgs.coreutils}/bin/echo"
+    RSYNC="${pkgs.rsync}/bin/rsync"
+    MKDIR="${pkgs.coreutils}/bin/mkdir"
+
+    SERVER_DIR="${serverDir}"
+    FULL_BACKUP_DIR="${fullBackupDir}"
+
+    $ECHO "Starting simple Minecraft backup (overwriting previous backup)..."
+
+    $MKDIR -p "$FULL_BACKUP_DIR"
+
+    $RSYNC -av \
+      --delete \
+      --exclude 'logs/***' \
+      --exclude 'cache/***' \
+      --exclude 'server.log*' \
+      "$SERVER_DIR/" "$FULL_BACKUP_DIR"
+
+    if [ $? -eq 0 ]; then
+      $ECHO "Backup completed successfully to $FULL_BACKUP_DIR"
+    else
+      $ECHO "Backup failed!" >&2
+      exit 1
+    fi
+  '';
+in
+{
+  systemd.user.services.minecraft-backup = {
+    Unit = {
+      Description = "Minecraft Server 6-Hour Simple Backup Service";
+      After = [
+        "onedrive-backup.service"
+      ];
+    };
+
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${minecraft-backup-script}/bin/minecraft-simple-backup";
+    };
+  };
+
+  systemd.user.timers.minecraft-backup = {
+    Unit = {
+      Description = "Run Minecraft Server Backup every 6 hours";
+    };
+
+    Timer = {
+      OnUnitActiveSec = "6h";
+      Persistent = true;
+    };
+
+    Install = {
+      WantedBy = [ "timers.target" ];
+    };
+  };
+}
+```
+
+The above configuration defines three things:
+1. A shell script that performs the backup using `rsync`. NixOS requires that the script is defined in the configuration so that it can be built and managed by Nix.
+2. A systemd service that runs the backup script.
+3. A systemd timer that triggers the backup service every 6 hours.
+
+The backup script uses `rsync` to copy the world files from the server directory to a backup directory. It excludes log files and cache files to save space. The backup directory is located in my OneDrive folder, which is synced to the cloud, providing an additional layer of protection against data loss.
+
+With this setup, even if the Minecraft server were to be compromised and the world files were to be deleted or corrupted, I would still have a recent backup to restore from.
+
+## Conclusion
+
+There was a problem with the initial setup of the home server, in that the game servers were running directly on the host system, exposing the entire system to potential attacks. By using Podman to containerise the game servers, I was able to isolate them from the host system, reducing the attack surface significantly. Containers are a powerful tool for isolating applications and limiting their access to the host system.
