@@ -22,7 +22,7 @@ NixOS is a Linux distro built around the Nix package manager. The main selling p
 
 This appealed to me for a few reasons:
 - I like using Terraform, Ansible, and other declarative infrastructure tools at work, so the concept was familiar, but new to me in the context of a desktop OS.
-- I had zero faith in the ex-office SSD and PSU, so if this 60 quid machine died, I can replace the whole thing and be back up and running in a few hours (salt, salt, salt).
+- I had zero faith in the ex-office SSD and PSU, so if this 60 quid machine died, I can replace the whole thing and be back up and running in a few hours.
 
 ## Setting up NixOS
 
@@ -93,24 +93,6 @@ let
     programs.home-manager.enable = true;
 
     programs.zsh.enable = true;
-
-    programs.git = {
-      enable = true;
-      settings.user.name  = "myusername";
-      settings.user.email = "myemail@gmail.com";
-    };
-
-    # SSH Configuration
-    programs.ssh = {
-      enable = true;
-      enableDefaultConfig = false;
-      matchBlocks = {
-        "github.com" = {
-          user = "myusername";
-          identityFile = "/home/tom/.ssh/github_nixos_server_z240";
-        };
-      };
-    };
   };
 
   allModules = [
