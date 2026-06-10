@@ -1,0 +1,96 @@
+---
+title: "Exploratory Testing Practical Interview"
+date: "2026-10-06"
+description: "Reviewing an approach for interviewing candidates for an Exploratory Testing role in 2026."
+tags: ["exploratory-testing", "interview"]
+published: true
+---
+
+## Background
+
+I had the opportunity to interview some candidates for an Exploratory Testing role recently within a team working on
+data migration and orchestration for distributed analytics environments.  Seems strange to say, jobs in tech are
+few and far between nowadays, and testing is often the first role to be seen as surplus to requirements in the
+engineering process.
+
+For years, I've been advocating for the importance of exploratory testing in software development. Specifically,
+it's crucial in the type of software being developed at my current company. There are a few reasons for this
+advocacy. The first is the complexity of the software and the environments it operates in. Distributed environments
+(like Hadoop) have a huge number of moving parts, and customers utilise the components of the cluster in wildly
+different ways. The environment you operate in for a financial customer is leaps and bounds from a retail customer.
+This produces a large amount of integration issues that are not easily caught by automated tests. The second reason
+is the need for a human touch. When you work in distributed environments, the number of customers you're considering
+is small. There are fewer Hadoop clusters in the world than there are mobile phones, for example. Each cluster is
+unique, and the requirements of each customer are different. This means that you need to have a deep understanding
+of the problem the software is actually solving for the specific customer you're working with. This level of
+flexibility and subjectivity is not something that can be automated. The third reason is the benefit that comes from
+creativity. Exploratory testing is inherently a creative process. As the tester explores the software, they discover
+areas of risk and they chase them. They can sniff out poor quality and they can chase it to the a set of
+improvements. A strong exploratory tester can be a huge asset, they focus on important areas of risk and hone in on
+issues that are not easily caught otherwise.
+
+The challenge for hiring for this role is that it's not a role that you can expect prior experience in. It is an
+unreasonable expectation to look for a candidate to come walking off the street with experience in Hadoop clusters.
+There are very few people in the world with that experience, and they often are not looking for a job in exploratory
+testing. The other issue is that exploratory testing is not a role that exists in many places. It's not a role that
+is widely understood or appreciated. This means that you can't predict the range of candidates that you will get for
+the role. It's very easy to hire the wrong person for the role.
+
+With those challenges, I needed an approach to interviewing candidates that would allow me to assess their skills
+and mindset for exploratory testing. Software engineering has practical interviews that are based on coding
+exercises, why doesn't exploratory testing have the same?
+
+## The inspiration
+
+The inspiration for the practical interview came from a pair of paragons in the field of exploratory testing, James
+Bach and Michael Bolton. They have both written extensively about the importance of the field, and I'm really just
+echoing that sentiment.
+
+In a YouTube video, James Bach conducts a mock interview for an exploratory testing role (I can't find the link!).
+In the video, he is doing a review of a candidate's testing for a trivial web application. This is a great example,
+and I put it into practice for my interviews.
+
+## The interview
+
+Firstly, pick a piece of software to get the person to test. Ideally, you need something with a user
+interface and a bunch of bugs. This isn't hard to whip up as a purpose built application, but there are plenty of
+applications on the internet that contain code that shouldn't have seen the light of day. The important thing is
+that you understand the software, the reason it exists and the problems it is trying to solve. This is important
+because you aren't just looking for a candidate to find bugs, you're looking for them to explore based on the
+software's purpose and risks to real users.
+
+With the software picked, the task is trivially simple (by design). Point the candidate at the software and ask them
+to exploratory test it. Give them a minimum amount of time, so they have a rough gauge on the scope of the task, but
+no maximum time. The minimum sets their scope, the lack of maximum allows you to assess if they know when to stop.
+Tell them that they should make a note in the report of any questions they have whilst testing, and that the
+questions won't get answered, but that you want to see what they are asking.
+
+The output of the testing is their report. You should give them absolutely no guidance on the format of the report,
+and you should never ask them for a specific template. The report is what you are using to assess the tester, you
+need it to be as much their own work as possible.
+
+## The review
+
+After the candidate has done their testing, you should have an email with their report. This is where you can really
+get to know the candidate. Testers reveal a huge amount about the way they test and they way they think when you
+give them such free-reign on a task.
+
+I don't want to give too much away about what I look for in the report, but if you know the craft of exploratory
+testing, you will know what differentiates a good report from a bad one. You can always spot the testers who think
+of themselves as "manual" testers and the testers who think of themselves as "exploratory" testers.
+
+## My experience
+
+I've done this interview process a few times now, and I've found it to be a great benefit to the overall process.
+Earlier, I mentioned the challenges in hiring for this team: lack of similar job postings and a lack of candidates
+with technical experience. This interview process has allowed me to clearly assess candidates abilities to do
+exploratory testing without needing to see them having done it in some other company. On the technical side, you get
+a bit of insight into tools that they might build to help them with their testing, but you need to supplement this
+process with a person-to-person conversation to really drill into that aspect. This is a helpful tool in the toolbox,
+but not a silver bullet.
+
+## Conclusion
+
+Two things:
+1. Hire for exploratory testing if what I'm saying resonates with challenges you have.
+2. If you do hire for exploratory testing, you can and should have a practical interview for it.
