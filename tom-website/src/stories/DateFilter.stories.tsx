@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { BlogFilterProvider } from "@/pages/blog/BlogFilterProvider";
 import DateFilter from "@/pages/blog/DateFilter";
-import { expect } from "@storybook/jest";
-import { userEvent, within } from "@storybook/testing-library";
+import { expect, userEvent, within } from "storybook/test";
 import { useState } from "react";
 
 const mockPosts = [
