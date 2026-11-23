@@ -1,6 +1,6 @@
 import { TypographyH3, TypographyP } from "@/components/typography";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { useBlogFilter } from "./BlogFilterProvider";
+import { useBlogFilter } from "./use-blog-filter";
 import BlogIndexCard from "./BlogIndexCard";
 
 function BlogIndexList() {
