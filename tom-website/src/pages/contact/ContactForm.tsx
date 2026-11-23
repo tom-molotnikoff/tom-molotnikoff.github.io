@@ -16,18 +16,18 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-function ContactForm() {
-  const formSchema = z.object({
-    name: z.string().min(2, {
-      message: "Name must be at least 2 characters.",
-    }),
-    email: z.string().email({ message: "Invalid email address." }),
-    message: z.string().min(10, {
-      message: "Message must be at least 10 characters.",
-    }),
-  });
+const formSchema = z.object({
+  name: z.string().min(2, { error: "Name must be at least 2 characters." }),
+  email: z.email({ error: "Invalid email address." }),
+  message: z
+    .string()
+    .min(10, { error: "Message must be at least 10 characters." }),
+});
 
-  const form = useForm({
+type ContactFormValues = z.infer<typeof formSchema>;
+
+function ContactForm() {
+  const form = useForm<ContactFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -36,7 +36,7 @@ function ContactForm() {
     },
   });
 
-  function onSubmit(values: any) {
+  function onSubmit(values: ContactFormValues) {
     fetch("https://formspree.io/f/xjkejbel", {
       method: "POST",
       headers: {

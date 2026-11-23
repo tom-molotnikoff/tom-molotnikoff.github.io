@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { useBlogFilter } from "./BlogFilterProvider";
+import { useBlogFilter } from "./use-blog-filter";
 
 function SearchFilter() {
   const { search, setSearch } = useBlogFilter();

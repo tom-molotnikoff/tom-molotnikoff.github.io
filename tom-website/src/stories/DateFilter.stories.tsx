@@ -1,9 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { BlogFilterProvider } from "@/pages/blog/BlogFilterProvider";
 import DateFilter from "@/pages/blog/DateFilter";
-import { expect } from "@storybook/jest";
-import { userEvent, within } from "@storybook/testing-library";
-import { useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
 const mockPosts = [
   {
@@ -40,20 +38,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  render: () => {
-    const [setSelectedDate] = useState("");
-    return (
-      <BlogFilterProvider
-        initialPosts={mockPosts}
-        // @ts-ignore: allow passing setDate for testing
-        setDate={setSelectedDate}
-      >
-        <div className="glass p-3 flex flex-1 flex-col gap-y-5 h-full">
-          <DateFilter />
-        </div>
-      </BlogFilterProvider>
-    );
-  },
+  render: () => (
+    <BlogFilterProvider initialPosts={mockPosts}>
+      <div className="glass p-3 flex flex-1 flex-col gap-y-5 h-full">
+        <DateFilter />
+      </div>
+    </BlogFilterProvider>
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByTestId("blog-date-filter"));

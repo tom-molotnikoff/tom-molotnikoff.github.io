@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useBlogFilter } from "./BlogFilterProvider";
+import { useBlogFilter } from "./use-blog-filter";
 
 function DateFilter() {
   const { setDate, allPosts } = useBlogFilter();

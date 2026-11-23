@@ -1,24 +1,41 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import type { BlogPost } from "./Blog";
+import { BlogFilterContext, type BlogFilterContextType } from "./use-blog-filter";
 
 interface BlogFilterProviderProps {
   children: React.ReactNode;
   initialPosts: BlogPost[];
 }
 
-interface BlogFilterContextType {
-  date: string;
-  setDate: (date: string) => void;
-  tag: string;
-  setTag: (tags: string) => void;
-  search: string;
-  setSearch: (search: string) => void;
-  filteredPosts: BlogPost[];
-  setFilteredPosts: (posts: BlogPost[]) => void;
-  allPosts: BlogPost[];
+function filterPosts(
+  posts: BlogPost[],
+  date: string,
+  tag: string,
+  search: string
+): BlogPost[] {
+  let filtered = posts;
+  if (date && date !== "all") {
+    filtered = filtered.filter((post) => {
+      const yearAndMonth = post.frontmatter.date.split("-").slice(0, 2);
+      return yearAndMonth.join("-") == date;
+    });
+  }
+  if (tag && tag !== "all") {
+    filtered = filtered.filter((post) => post.frontmatter.tags?.includes(tag));
+  }
+  if (search && search.trim() !== "") {
+    const lowerSearch = search.toLowerCase();
+    filtered = filtered.filter(
+      (post) =>
+        post.frontmatter.title.toLowerCase().includes(lowerSearch) ||
+        post.frontmatter.description?.toLowerCase().includes(lowerSearch) ||
+        post.frontmatter.tags?.some((tag) =>
+          tag.toLowerCase().includes(lowerSearch)
+        )
+    );
+  }
+  return filtered;
 }
-
-const BlogFilterContext = createContext({} as BlogFilterContextType);
 
 export function BlogFilterProvider({
   children,
@@ -27,38 +44,13 @@ export function BlogFilterProvider({
   const [date, setDate] = useState("");
   const [tag, setTag] = useState("");
   const [search, setSearch] = useState("");
-  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>(initialPosts);
-  const [allPosts] = useState<BlogPost[]>(initialPosts);
 
-  useEffect(() => {
-    let posts = allPosts;
-    if (date && date !== "all") {
-      posts = posts.filter((post) => {
-        const yearAndMonth = post.frontmatter.date.split("-").slice(0, 2);
-        return yearAndMonth.join("-") == date;
-      });
-    }
-    if (tag && tag !== "all") {
-      posts = posts.filter((post) => {
-        return post.frontmatter.tags?.includes(tag);
-      });
-    }
-    if (search && search.trim() !== "") {
-      const lowerSearch = search.toLowerCase();
-      posts = posts.filter((post) => {
-        return (
-          post.frontmatter.title.toLowerCase().includes(lowerSearch) ||
-          post.frontmatter.description?.toLowerCase().includes(lowerSearch) ||
-          post.frontmatter.tags?.some((tag: string) =>
-            tag.toLowerCase().includes(lowerSearch)
-          )
-        );
-      });
-    }
-    setFilteredPosts(posts);
-  }, [date, tag, search, initialPosts]);
+  const filteredPosts = useMemo(
+    () => filterPosts(initialPosts, date, tag, search),
+    [initialPosts, date, tag, search]
+  );
 
-  const initialContext: BlogFilterContextType = {
+  const value: BlogFilterContextType = {
     date,
     setDate,
     tag,
@@ -66,17 +58,12 @@ export function BlogFilterProvider({
     search,
     setSearch,
     filteredPosts,
-    setFilteredPosts,
     allPosts: initialPosts,
   };
 
   return (
-    <BlogFilterContext.Provider value={initialContext}>
+    <BlogFilterContext.Provider value={value}>
       {children}
     </BlogFilterContext.Provider>
   );
-}
-
-export function useBlogFilter() {
-  return useContext(BlogFilterContext);
 }

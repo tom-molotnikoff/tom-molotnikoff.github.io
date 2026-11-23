@@ -65,7 +65,7 @@ function JobHistory() {
           : "glass p-3"
       } `}
     >
-      {years.map((year, _) => {
+      {years.map((year) => {
         const job = jobs.find((j) => j.most_recent_year === year);
         return (
           <div

@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 
+const phrases = [
+  "Software Engineer",
+  "Test Team Lead",
+  "Cloud Enthusiast",
+  "IoT Hobbyist",
+];
+
 export default function HeroRotatingWords() {
   const [index, setIndex] = useState(0);
-  const phrases = [
-    "Software Engineer",
-    "Test Team Lead",
-    "Cloud Enthusiast",
-    "IoT Hobbyist",
-  ];
   const [isWaving, setIsWaving] = useState(true);
 
   useEffect(() => {
